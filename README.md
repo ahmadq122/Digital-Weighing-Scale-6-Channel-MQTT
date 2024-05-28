@@ -1,0 +1,1 @@
+# Digital-Weighing-Scale-6-Channel-MQTT

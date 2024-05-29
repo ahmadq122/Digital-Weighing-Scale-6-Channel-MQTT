@@ -20,7 +20,7 @@
 // Define the tasks
 TaskHandle_t task_01_c1_handle = NULL;
 TaskHandle_t task_02_c1_handle = NULL;
-TaskHandle_t task_03_c1_handle = NULL;
+// TaskHandle_t task_03_c1_handle = NULL;
 TaskHandle_t task_04_c1_handle = NULL;
 TaskHandle_t task_05_c1_handle = NULL;
 TaskHandle_t task_06_c1_handle = NULL;
@@ -31,7 +31,7 @@ TaskHandle_t task_02_c0_handle = NULL;
 
 void task_01_c1(void *pvParameters);
 void task_02_c1(void *pvParameters);
-void task_03_c1(void *pvParameters); // event buzzer()
+// void task_03_c1(void *pvParameters); // event buzzer()
 void task_04_c1(void *pvParameters); // ADS Board 1
 void task_05_c1(void *pvParameters); // ADS Board 2
 void task_06_c1(void *pvParameters); // ADS Board 3
@@ -47,7 +47,7 @@ void RealTimeOS::setup(void)
     xTaskCreatePinnedToCore(
         task_01_c1,
         "task_01", // A name just for humans
-        1024 * 2,  // This stack size can be checked & adjusted by reading the Stack Highwater
+        1024,      // This stack size can be checked & adjusted by reading the Stack Highwater
         NULL,
         configMAX_PRIORITIES - 1, // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
         &task_01_c1_handle,
@@ -56,25 +56,25 @@ void RealTimeOS::setup(void)
     xTaskCreatePinnedToCore(
         task_02_c1,
         "task_02",
-        1024 * 2, // Stack size
+        1536, // Stack size
         NULL,
         configMAX_PRIORITIES - 2, // Priority
         &task_02_c1_handle,
         ARDUINO_RUNNING_CORE);
 
-    xTaskCreatePinnedToCore(
-        task_03_c1,
-        "task_03",
-        1024 * 2, // Stack size
-        NULL,
-        configMAX_PRIORITIES, // Priority
-        &task_03_c1_handle,
-        ARDUINO_RUNNING_CORE);
+    // xTaskCreatePinnedToCore(
+    //     task_03_c1,
+    //     "task_03",
+    //     1024 * 2, // Stack size
+    //     NULL,
+    //     configMAX_PRIORITIES, // Priority
+    //     &task_03_c1_handle,
+    //     ARDUINO_RUNNING_CORE);
 
     xTaskCreatePinnedToCore(
         task_04_c1,
         "task_04",
-        1024 * 5, // Stack size
+        1024 * 2, // Stack size
         NULL,
         configMAX_PRIORITIES - 4, // Priority
         &task_04_c1_handle,
@@ -83,7 +83,7 @@ void RealTimeOS::setup(void)
     xTaskCreatePinnedToCore(
         task_05_c1,
         "task_05",
-        1024 * 5, // Stack size
+        1024 * 2, // Stack size
         NULL,
         configMAX_PRIORITIES - 5, // Priority
         &task_05_c1_handle,
@@ -92,7 +92,7 @@ void RealTimeOS::setup(void)
     xTaskCreatePinnedToCore(
         task_06_c1,
         "task_06",
-        1024 * 5, // Stack size
+        1024 * 2, // Stack size
         NULL,
         configMAX_PRIORITIES - 6, // Priority
         &task_06_c1_handle,
@@ -101,7 +101,7 @@ void RealTimeOS::setup(void)
     xTaskCreatePinnedToCore(
         task_07_c1,
         "task_07",
-        1024 * 10, // Stack size
+        1024 * 2, // Stack size
         NULL,
         configMAX_PRIORITIES - 7, // Priority
         &task_07_c1_handle,
@@ -118,7 +118,7 @@ void RealTimeOS::setup(void)
     xTaskCreatePinnedToCore(
         task_02_c0,
         "task_02_c0",
-        1024 * 1, // Stack size
+        1024, // Stack size
         NULL,
         configMAX_PRIORITIES - 2, // Priority
         &task_02_c0_handle,
@@ -180,7 +180,7 @@ void task_01_c1(void *pvParameters) // This is a task.
 
         rtos->secondBlink = !rtos->secondBlink;
         // Serial.println("Task is running!");
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+        delay(1000); // Delay for 1 second
     }
 }
 
@@ -191,61 +191,66 @@ void task_02_c1(void *pvParameters) // This is a task.
     for (;;) // A Task shall never return or exit.
     {
         hmi->serialEvent_2();
-        vTaskDelay(30 / portTICK_PERIOD_MS); // Delay for 1 second
+        delay(50); // Delay for 1 second
     }
 }
 
-void task_03_c1(void *pvParameters) // This is a task.
-{
-    (void)pvParameters;
+// void task_03_c1(void *pvParameters) // This is a task.
+// {
+//     (void)pvParameters;
 
-    bool buzzerState = false;
-    uint32_t startup = millis();
+//     bool buzzerState = false;
+//     uint32_t startup = millis();
 
-    for (;;) // A Task shall never return or exit.
-    {
-        if (!fdata->getBuzzerMute() && rtos->batteryInitiated)
-        {
-            if (hmi->getDataBuzzer() == 2 || (rtos->batteryPercent < 10))
-            {
-                if (!buzzerState)
-                {
-                    digitalWrite(Pin_Buzzer, 1);
-                    // Serial.println("Buzzer ON!");
-                    if (rtos->batteryPercent <= 10)
-                    {
-                        vTaskDelay(150 / portTICK_PERIOD_MS);
-                        digitalWrite(Pin_Buzzer, 0);
-                        vTaskDelay(200 / portTICK_PERIOD_MS);
-                        digitalWrite(Pin_Buzzer, 1);
-                        vTaskDelay(200 / portTICK_PERIOD_MS);
-                        digitalWrite(Pin_Buzzer, 0);
-                        buzzerState = false;
-                    }
-                }
-            }
-            else if (hmi->getDataBuzzer() == 1)
-            {
-                if (buzzerState)
-                {
-                    buzzerState = false;
-                    digitalWrite(Pin_Buzzer, 0);
-                    // Serial.println("Buzzer OFF!");
-                }
-            }
-            else
-            {
-                digitalWrite(Pin_Buzzer, 0);
-            }
-        }
-        else
-        {
-            // Serial.println("Muted!");
-            digitalWrite(Pin_Buzzer, 0);
-        }
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
-    }
-}
+//     for (;;) // A Task shall never return or exit.
+//     {
+//         Serial.println(String() + "En: " + fdata->getBuzzerMute() + " " + hmi->getDataBuzzer() + " " + rtos->batteryPercent);
+//         if (!fdata->getBuzzerMute() && rtos->batteryInitiated)
+//         {
+//             Serial.println("Debug_01");
+//             if (hmi->getDataBuzzer() == 2 || (rtos->batteryPercent < 10))
+//             {
+//                 Serial.println("Debug_02");
+//                 if (!buzzerState)
+//                 {
+//                     digitalWrite(Pin_Buzzer, 1);
+//                     // Serial.println("Buzzer ON!");
+//                     if (rtos->batteryPercent <= 10)
+//                     {
+//                         delay(150);
+//                         digitalWrite(Pin_Buzzer, 0);
+//                         delay(200);
+//                         digitalWrite(Pin_Buzzer, 1);
+//                         delay(200);
+//                         digitalWrite(Pin_Buzzer, 0);
+//                         buzzerState = false;
+//                     }
+//                 }
+//             }
+//             else if (hmi->getDataBuzzer() == 1)
+//             {
+//                 if (buzzerState)
+//                 {
+//                     buzzerState = false;
+//                     digitalWrite(Pin_Buzzer, 0);
+//                     // Serial.println("Buzzer OFF!");
+//                 }
+//             }
+//             else
+//             {
+//                 buzzerState = false;
+//                 digitalWrite(Pin_Buzzer, 0);
+//             }
+//         }
+//         else
+//         {
+//             // Serial.println("Muted!");
+//             buzzerState = false;
+//             digitalWrite(Pin_Buzzer, 0);
+//         }
+//         delay(1000); // Delay for 1 second
+//     }
+// }
 
 void task_04_c1(void *pvParameters) // This is a task.
 {
@@ -271,13 +276,13 @@ void task_04_c1(void *pvParameters) // This is a task.
                             channel = !channel;
                     }
                 }
-                vTaskDelay(20 / portTICK_PERIOD_MS);
+                delay(20);
             }
             else
             {
                 if (fdata->getChannelEnDisStatus(!channel))
                     channel = !channel;
-                vTaskDelay(1000 / portTICK_PERIOD_MS);
+                delay(1000);
             }
         }
     }
@@ -286,7 +291,7 @@ void task_04_c1(void *pvParameters) // This is a task.
         for (;;)
         {
             // Serial.println("Do Nothing1!");
-            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            delay(10000);
             // do noting
         }
     }
@@ -316,13 +321,13 @@ void task_05_c1(void *pvParameters) // This is a task.
                             channel = !channel;
                     }
                 }
-                vTaskDelay(20 / portTICK_PERIOD_MS);
+                delay(20);
             }
             else
             {
                 if (fdata->getChannelEnDisStatus(!channel))
                     channel = !channel;
-                vTaskDelay(1000 / portTICK_PERIOD_MS);
+                delay(1000);
             }
         }
     }
@@ -331,7 +336,7 @@ void task_05_c1(void *pvParameters) // This is a task.
         for (;;)
         {
             // Serial.println("Do Nothing2!");
-            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            delay(10000);
             // do noting
         }
     }
@@ -360,13 +365,13 @@ void task_06_c1(void *pvParameters) // This is a task.
                             channel = !channel;
                     }
                 }
-                vTaskDelay(20 / portTICK_PERIOD_MS);
+                delay(20);
             }
             else
             {
                 if (fdata->getChannelEnDisStatus(!channel))
                     channel = !channel;
-                vTaskDelay(1000 / portTICK_PERIOD_MS);
+                delay(1000);
             }
         }
     }
@@ -375,7 +380,7 @@ void task_06_c1(void *pvParameters) // This is a task.
         for (;;)
         {
             // Serial.println("Do Nothing3!");
-            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            delay(10000);
             // do noting
         }
     }
@@ -395,7 +400,7 @@ void task_07_c1(void *pvParameters) // This is a task.
                 rtos->remoteLogTriggered[i] = false;
             }
         }
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+        delay(1000); // Delay for 1 second
     }
 }
 
@@ -472,10 +477,10 @@ void task_01_c0(void *pvParameters) // This is a task.
             rtos->batteryInitiated = true;
 
             if (rtos->batteryPercent <= 5)
-                rtos->powerOffFlag = true;
+                rtos->powerOffFlag = 1;
         }
 
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+        delay(1000); // Delay for 1 second
     }
 }
 void task_02_c0(void *pvParameters) // This is a task.
@@ -488,16 +493,18 @@ void task_02_c0(void *pvParameters) // This is a task.
     {
         if (rtos->powerOffFlag)
         {
-            vTaskDelay(10000 / portTICK_PERIOD_MS);
-            if (rtos->batteryPercent > 5)
+            if (rtos->powerOffFlag == 1)
             {
-                rtos->powerOffFlag = false;
-                continue;
+                delay(30000);
+                if (rtos->batteryPercent > 5)
+                {
+                    rtos->powerOffFlag = 0;
+                    continue;
+                }
             }
-
             hmi->showPage("off");
             hmi->waitForPageRespon();
-            vTaskDelay(5000 / portTICK_PERIOD_MS);
+            delay(5000);
             hmi->showPage("stb");
             hmi->waitForPageRespon();
 
@@ -505,7 +512,7 @@ void task_02_c0(void *pvParameters) // This is a task.
             // {
             vTaskDelete(task_01_c1_handle);
             vTaskDelete(task_02_c1_handle);
-            vTaskDelete(task_03_c1_handle);
+            // vTaskDelete(task_03_c1_handle);
             vTaskDelete(task_04_c1_handle);
             vTaskDelete(task_05_c1_handle);
             vTaskDelete(task_06_c1_handle);
@@ -514,7 +521,7 @@ void task_02_c0(void *pvParameters) // This is a task.
             vTaskDelete(task_02_c0_handle);
             //     taskSuspended = true;
             // }
-            vTaskDelay(100 / portTICK_PERIOD_MS);
+            delay(100);
             esp_deep_sleep_start();
         }
         // else
@@ -538,7 +545,7 @@ void task_02_c0(void *pvParameters) // This is a task.
         // if(taskSuspended){
         // Serial.println("Task is running!");
         // }
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+        delay(1000); // Delay for 1 second
     }
 }
 

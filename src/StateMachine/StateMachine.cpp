@@ -67,9 +67,7 @@ void StateMachine::setup(void)
     bool flashBegin = false;
     uint8_t counter = 0;
 
-    // pinMode(Pin_VCC_Control, OUTPUT);
     // pinMode(Pin_Buzzer, OUTPUT);
-    // digitalWrite(Pin_VCC_Control, 0);
     // digitalWrite(Pin_Buzzer, 0);
 
     while (powerUpButtonWait > 0)
@@ -110,11 +108,9 @@ void StateMachine::setup(void)
         Serial.begin(fdata->getBaudrateSerial(debugging));
         while (!Serial)
             ;
-        // digitalWrite(Pin_VCC_Control, 0);
     }
     else
     {
-        // digitalWrite(Pin_VCC_Control, 1);
     }
     LogSerial.begin(fdata->getBaudrateSerial(logging));
     while (!LogSerial)
@@ -189,6 +185,7 @@ uint8_t StateMachine::homeScreen(void)
     String tempString;
     char timeString[10];
     char timeNDateString[20];
+    // UBaseType_t mainFreeStackNum = 0;
 
     hmi->showPage("home");
     hmi->waitForPageRespon();
@@ -209,8 +206,26 @@ uint8_t StateMachine::homeScreen(void)
 
     while (true)
     {
-        // Serial.println("adc:" + analogRead(Pin_VBat_Sense));
-        // delay(100);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(NULL);
+        // Serial.printf("mainFreeStackNum: %d bytes\n", mainFreeStackNum);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_01_c1_handle);
+        // Serial.printf("task_01_c1_handle: %d bytes\n", mainFreeStackNum);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_02_c1_handle);
+        // Serial.printf("task_02_c1_handle: %d bytes\n", mainFreeStackNum);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_04_c1_handle);
+        // Serial.printf("task_04_c1_handle: %d bytes\n", mainFreeStackNum);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_05_c1_handle);
+        // Serial.printf("task_05_c1_handle: %d bytes\n", mainFreeStackNum);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_06_c1_handle);
+        // Serial.printf("task_06_c1_handle: %d bytes\n", mainFreeStackNum);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_07_c1_handle);
+        // Serial.printf("task_07_c1_handle: %d bytes\n", mainFreeStackNum);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_01_c0_handle);
+        // Serial.printf("task_01_c0_handle: %d bytes\n", mainFreeStackNum);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_02_c0_handle);
+        // Serial.printf("task_02_c0_handle: %d bytes\n", mainFreeStackNum);
+        delay(200);
+
         mtime.updateRTC_N_NTPTime();
 
         if (!sClockUpdate)
@@ -566,7 +581,7 @@ uint8_t StateMachine::datalogSettings(void)
 {
     bool exitFlag = false;
     // __start:
-    Serial.println("Datalog page opened");
+    // Serial.println("Datalog page opened");
     while (!exitFlag)
     {
         hmi->showPage("datalog");
@@ -575,7 +590,7 @@ uint8_t StateMachine::datalogSettings(void)
         button[0] = hmi->getDataButton(0);
         button[1] = hmi->getDataButton(1);
         button[2] = hmi->getDataButton(2);
-        
+
         while (!button[0] && !button[1] && !button[2] && !exitFlag)
         {
             exitFlag = hmi->getExitPageFlag();
@@ -704,7 +719,6 @@ void StateMachine::updateBatteryIndicatorToNextion(uint8_t newValue, bool force)
         //     }
         //     hmi->showPage("stb");
         //     hmi->waitForPageRespon();
-        //     // digitalWrite(Pin_VCC_Control, 0); // Power Off The Device to Keep The Battery Life
 
         //     rtos->powerOffFlag = true;
         //     while (rtos->powerOffFlag)

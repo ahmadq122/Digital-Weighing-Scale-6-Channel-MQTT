@@ -1,7 +1,7 @@
 #include "StateMachine/StateMachine.h"
 #include "FlashMemory/FlashMemory.h"
 
-StateMachine* state = new(StateMachine);
+StateMachine *state = new (StateMachine);
 
 void setup()
 {
@@ -13,8 +13,8 @@ void loop()
 {
   // put your main code here, to run repeatedly:
   uint8_t nextState = HOME;
-
-    while (true)
+  
+  while (true)
   {
     nextState = state->homeScreen();
 

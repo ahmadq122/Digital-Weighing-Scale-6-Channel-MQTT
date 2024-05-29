@@ -14,7 +14,6 @@
 #define Pin_Speedrate   4
 
 #define Pin_VBat_Sense  35
-#define Pin_Buzzer      5
+#define Pin_Buzzer      0  // also used as Boot PIN, not recommended to use this PIN as DIO
 
 #define Pin_VCC_Sense   34
-#define Pin_VCC_Control 0

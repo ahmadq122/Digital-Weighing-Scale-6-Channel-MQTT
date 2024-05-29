@@ -66,7 +66,9 @@ uint8_t Datalogger::setting(uint8_t loggerType)
     secondPeriod = period - ((hourPeriod * 3600) + (minutePeriod * 60));
     // __start:
     if (loggerType == serial)
+    {
         hmi->showPage("serial");
+    }
     else if (loggerType == local)
     {
         hmi->showPage("local");
@@ -77,11 +79,15 @@ uint8_t Datalogger::setting(uint8_t loggerType)
         }
     }
     else if (loggerType == remote)
+    {
         hmi->showPage("remote");
+    }
     hmi->waitForPageRespon();
 
     if (loggerType == serial)
+    {
         hmi->setStringToNextion("b1.txt", String() + fdata->getBaudrateSerial(logging));
+    }
     hmi->setIntegerToNextion("b0.val", enDis);
     hmi->setIntegerToNextion("q2.picc", enDis ? Datalog_Serial_Prs_Bkg : Datalog_Serial_Normal_Bkg);
     showObjDatalogPage(loggerType, enDis);
@@ -115,24 +121,28 @@ uint8_t Datalogger::setting(uint8_t loggerType)
                     if (enDis)
                     {
                         hmi->setIntegerToNextion("q2.picc", Datalog_Serial_Prs_Bkg);
-                        if (!sdcard->cardMounted)
+                        if (loggerType == local)
                         {
-                            sdcard->setup();
-                            hmi->flushAvailableSerial();
-                        }
-                        if (sdcard->cardMounted)
-                        {
-                            sdcard->updateCsvFileName();
-                        }
-                        else
-                        {
-                            enDis = false;
-                            hmi->setIntegerToNextion("b0.val", enDis);
+                            if (!sdcard->cardMounted)
+                            {
+                                sdcard->setup();
+                                hmi->flushAvailableSerial();
+                            }
+                            if (sdcard->cardMounted)
+                            {
+                                sdcard->updateCsvFileName();
+                            }
+                            else
+                            {
+                                enDis = false;
+                                hmi->setIntegerToNextion("b0.val", enDis);
+                            }
                         }
                     }
                     else
                     {
-                        sdcard->unmount();
+                        if (loggerType == local)
+                            sdcard->unmount();
                         hmi->setIntegerToNextion("q2.picc", Datalog_Serial_Normal_Bkg);
                     }
                     fdata->setDatalogStatus(loggerType, enDis);

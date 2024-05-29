@@ -155,10 +155,8 @@ start:
 
                         // hmi->showPage("stb");
                         // hmi->waitForPageRespon();
-                        // if (!fdata->getDebugMode())
-                        //     digitalWrite(Pin_VCC_Control, 0); // Power Off The Device to Keep The Battery Life
-
-                        rtos->powerOffFlag = true;
+                       
+                        rtos->powerOffFlag = 2;
                         while (rtos->powerOffFlag)
                         {
                             // Do Nothing
@@ -623,12 +621,10 @@ void Settings::debugMenu(void)
                         Serial.begin(fdata->getBaudrateSerial(debugging));
                         while (!Serial)
                             ;
-                        // digitalWrite(Pin_VCC_Control, 0);
                     }
                     else
                     {
                         Serial.end();
-                        // digitalWrite(Pin_VCC_Control, 1);
                     }
                     // Serial.println(String() + "Debug mode " + (enDisDebug ? "Enabled" : "Disabled"));
                     break;

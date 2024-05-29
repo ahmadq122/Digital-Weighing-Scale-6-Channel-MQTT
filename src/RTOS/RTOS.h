@@ -30,7 +30,7 @@ public:
     uint8_t batteryPercent = 0;
     float vBatActual = 0.0;
     bool batteryInitiated = false;
-    bool powerOffFlag = false;
+    uint8_t powerOffFlag = 0; // 1: power off by battery low, 2: power off by request
     void setup(void);
     void updateStartProgressBar(uint8_t add);
 
@@ -38,4 +38,15 @@ private:
 };
 
 extern RealTimeOS *rtos;
+extern TaskHandle_t task_01_c1_handle;
+extern TaskHandle_t task_02_c1_handle;
+// extern TaskHandle_t task_03_c1_handle;
+extern TaskHandle_t task_04_c1_handle;
+extern TaskHandle_t task_05_c1_handle;
+extern TaskHandle_t task_06_c1_handle;
+extern TaskHandle_t task_07_c1_handle;
+
+extern TaskHandle_t task_01_c0_handle;
+extern TaskHandle_t task_02_c0_handle;
+
 #endif

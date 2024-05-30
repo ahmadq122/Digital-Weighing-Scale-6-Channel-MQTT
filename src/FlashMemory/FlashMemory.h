@@ -94,6 +94,7 @@ public:
     uint8_t getMeasurementUnit(void);
     bool isAllChannelDisabled(void);
     bool getChannelEnDisStatus(uint8_t channel);
+    uint8_t getChannelEnDisStatus();
     bool getDebugMode(void);
     bool getNetworkEnable(void);
     bool getDatalogStatus(uint8_t loggerType);

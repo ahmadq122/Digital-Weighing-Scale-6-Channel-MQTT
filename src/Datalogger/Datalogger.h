@@ -28,8 +28,8 @@ private:
     void updateSelectedTimeScheduler(uint8_t loggerType, uint8_t select, uint8_t *dataHour, uint8_t *dataMinute);
     void updateSelectedDateScheduler(uint8_t loggerType, uint8_t select, uint8_t *dataDate, uint8_t *dataMonth, uint8_t *dataYear);
 
-    String thingSpeakServer = "https://api.thingspeak.com/update?api_key=";
-    uint8_t remoteUpdateForChannel = 0;
+    // String thingSpeakServer = "https://api.thingspeak.com/update?api_key=";
+    // uint8_t remoteUpdateForChannel = 0;
 };
 
 extern Datalogger* logger;

@@ -10,6 +10,7 @@
 #include "ADC/ADS1232.h"
 #include "Datalogger/Datalogger.h"
 #include "PinMap.h"
+// #include "PublisherSubscriber/PublisherSubscriber.h"
 
 #define ESP_Analog_Voltage_Refrence 3.3
 // #define Minimum_Battery_Voltage 7.00
@@ -20,22 +21,21 @@
 // Define the tasks
 TaskHandle_t task_01_c1_handle = NULL;
 TaskHandle_t task_02_c1_handle = NULL;
-// TaskHandle_t task_03_c1_handle = NULL;
+TaskHandle_t task_03_c1_handle = NULL;
 TaskHandle_t task_04_c1_handle = NULL;
 TaskHandle_t task_05_c1_handle = NULL;
 TaskHandle_t task_06_c1_handle = NULL;
-TaskHandle_t task_07_c1_handle = NULL;
 
 TaskHandle_t task_01_c0_handle = NULL;
 TaskHandle_t task_02_c0_handle = NULL;
+TaskHandle_t task_03_c0_handle = NULL;
 
 void task_01_c1(void *pvParameters);
 void task_02_c1(void *pvParameters);
-// void task_03_c1(void *pvParameters); // event buzzer()
-void task_04_c1(void *pvParameters); // ADS Board 1
-void task_05_c1(void *pvParameters); // ADS Board 2
-void task_06_c1(void *pvParameters); // ADS Board 3
-void task_07_c1(void *pvParameters); // Remote log
+void task_03_c1(void *pvParameters); // ADS Board 1
+void task_04_c1(void *pvParameters); // ADS Board 2
+void task_05_c1(void *pvParameters); // ADS Board 3
+void task_06_c1(void *pvParameters); // Publisher
 
 void task_01_c0(void *pvParameters); // battery volt measurement
 void task_02_c0(void *pvParameters); // task management
@@ -55,56 +55,47 @@ void RealTimeOS::setup(void)
 
     xTaskCreatePinnedToCore(
         task_02_c1,
-        "task_02",
+        "task_02_c1",
         1536, // Stack size
         NULL,
         configMAX_PRIORITIES - 2, // Priority
         &task_02_c1_handle,
         ARDUINO_RUNNING_CORE);
 
-    // xTaskCreatePinnedToCore(
-    //     task_03_c1,
-    //     "task_03",
-    //     1024 * 2, // Stack size
-    //     NULL,
-    //     configMAX_PRIORITIES, // Priority
-    //     &task_03_c1_handle,
-    //     ARDUINO_RUNNING_CORE);
-
     xTaskCreatePinnedToCore(
-        task_04_c1,
-        "task_04",
+        task_03_c1,
+        "task_03_c1",
         1024 * 2, // Stack size
         NULL,
         configMAX_PRIORITIES - 4, // Priority
+        &task_03_c1_handle,
+        ARDUINO_RUNNING_CORE);
+
+    xTaskCreatePinnedToCore(
+        task_04_c1,
+        "task_04_c1",
+        1024 * 2, // Stack size
+        NULL,
+        configMAX_PRIORITIES - 5, // Priority
         &task_04_c1_handle,
         ARDUINO_RUNNING_CORE);
 
     xTaskCreatePinnedToCore(
         task_05_c1,
-        "task_05",
+        "task_05_c1",
         1024 * 2, // Stack size
         NULL,
-        configMAX_PRIORITIES - 5, // Priority
+        configMAX_PRIORITIES - 6, // Priority
         &task_05_c1_handle,
         ARDUINO_RUNNING_CORE);
 
     xTaskCreatePinnedToCore(
         task_06_c1,
-        "task_06",
-        1024 * 2, // Stack size
-        NULL,
-        configMAX_PRIORITIES - 6, // Priority
-        &task_06_c1_handle,
-        ARDUINO_RUNNING_CORE);
-
-    xTaskCreatePinnedToCore(
-        task_07_c1,
-        "task_07",
-        1024 * 2, // Stack size
+        "task_06_c1",
+        1024 * 4, // Stack size
         NULL,
         configMAX_PRIORITIES - 7, // Priority
-        &task_07_c1_handle,
+        &task_06_c1_handle,
         ARDUINO_RUNNING_CORE);
 
     xTaskCreatePinnedToCore(
@@ -115,12 +106,13 @@ void RealTimeOS::setup(void)
         configMAX_PRIORITIES - 1, // Priority
         &task_01_c0_handle,
         0);
+
     xTaskCreatePinnedToCore(
         task_02_c0,
         "task_02_c0",
         1024, // Stack size
         NULL,
-        configMAX_PRIORITIES - 2, // Priority
+        configMAX_PRIORITIES - 3, // Priority
         &task_02_c0_handle,
         0);
 }
@@ -195,64 +187,7 @@ void task_02_c1(void *pvParameters) // This is a task.
     }
 }
 
-// void task_03_c1(void *pvParameters) // This is a task.
-// {
-//     (void)pvParameters;
-
-//     bool buzzerState = false;
-//     uint32_t startup = millis();
-
-//     for (;;) // A Task shall never return or exit.
-//     {
-//         Serial.println(String() + "En: " + fdata->getBuzzerMute() + " " + hmi->getDataBuzzer() + " " + rtos->batteryPercent);
-//         if (!fdata->getBuzzerMute() && rtos->batteryInitiated)
-//         {
-//             Serial.println("Debug_01");
-//             if (hmi->getDataBuzzer() == 2 || (rtos->batteryPercent < 10))
-//             {
-//                 Serial.println("Debug_02");
-//                 if (!buzzerState)
-//                 {
-//                     digitalWrite(Pin_Buzzer, 1);
-//                     // Serial.println("Buzzer ON!");
-//                     if (rtos->batteryPercent <= 10)
-//                     {
-//                         delay(150);
-//                         digitalWrite(Pin_Buzzer, 0);
-//                         delay(200);
-//                         digitalWrite(Pin_Buzzer, 1);
-//                         delay(200);
-//                         digitalWrite(Pin_Buzzer, 0);
-//                         buzzerState = false;
-//                     }
-//                 }
-//             }
-//             else if (hmi->getDataBuzzer() == 1)
-//             {
-//                 if (buzzerState)
-//                 {
-//                     buzzerState = false;
-//                     digitalWrite(Pin_Buzzer, 0);
-//                     // Serial.println("Buzzer OFF!");
-//                 }
-//             }
-//             else
-//             {
-//                 buzzerState = false;
-//                 digitalWrite(Pin_Buzzer, 0);
-//             }
-//         }
-//         else
-//         {
-//             // Serial.println("Muted!");
-//             buzzerState = false;
-//             digitalWrite(Pin_Buzzer, 0);
-//         }
-//         delay(1000); // Delay for 1 second
-//     }
-// }
-
-void task_04_c1(void *pvParameters) // This is a task.
+void task_03_c1(void *pvParameters) // This is a task.
 {
     (void)pvParameters;
 
@@ -297,7 +232,7 @@ void task_04_c1(void *pvParameters) // This is a task.
     }
 }
 
-void task_05_c1(void *pvParameters) // This is a task.
+void task_04_c1(void *pvParameters) // This is a task.
 {
     (void)pvParameters;
 
@@ -341,7 +276,7 @@ void task_05_c1(void *pvParameters) // This is a task.
         }
     }
 }
-void task_06_c1(void *pvParameters) // This is a task.
+void task_05_c1(void *pvParameters) // This is a task.
 {
     (void)pvParameters;
 
@@ -386,19 +321,17 @@ void task_06_c1(void *pvParameters) // This is a task.
     }
 }
 
-void task_07_c1(void *pvParameters) // This is a task.
+void task_06_c1(void *pvParameters) // This is a task.
 {
     (void)pvParameters;
 
     for (;;) // A Task shall never return or exit.
     {
-        for (uint8_t i = 0; i < 6; i++)
+        if (rtos->remoteLogTriggered)
         {
-            if (rtos->remoteLogTriggered[i])
-            {
-                logger->remoteLogging(i);
-                rtos->remoteLogTriggered[i] = false;
-            }
+            // Serial.println("Remote triggered! " + String(fdata->getChannelEnDisStatus(), 2));
+            logger->remoteLogging(fdata->getChannelEnDisStatus());
+            rtos->remoteLogTriggered = false;
         }
         delay(1000); // Delay for 1 second
     }
@@ -512,13 +445,13 @@ void task_02_c0(void *pvParameters) // This is a task.
             // {
             vTaskDelete(task_01_c1_handle);
             vTaskDelete(task_02_c1_handle);
-            // vTaskDelete(task_03_c1_handle);
+            vTaskDelete(task_03_c1_handle);
             vTaskDelete(task_04_c1_handle);
             vTaskDelete(task_05_c1_handle);
             vTaskDelete(task_06_c1_handle);
-            vTaskDelete(task_07_c1_handle);
             vTaskDelete(task_01_c0_handle);
             vTaskDelete(task_02_c0_handle);
+            vTaskDelete(task_03_c0_handle);
             //     taskSuspended = true;
             // }
             delay(100);
@@ -532,11 +465,11 @@ void task_02_c0(void *pvParameters) // This is a task.
         // vTaskStartScheduler();
         // vTaskResume(task_01_c1_handle);
         // vTaskResume(task_02_c1_handle);
+        // vTaskResume(task_03_c0_handle);
         // vTaskResume(task_03_c1_handle);
         // vTaskResume(task_04_c1_handle);
         // vTaskResume(task_05_c1_handle);
         // vTaskResume(task_06_c1_handle);
-        // vTaskResume(task_07_c1_handle);
         // vTaskResume(task_01_c0_handle);
         // vTaskSuspend(task_02_c0_handle);
         //     taskSuspended = false;

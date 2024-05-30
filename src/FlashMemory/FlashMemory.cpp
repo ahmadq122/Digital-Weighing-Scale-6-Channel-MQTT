@@ -753,6 +753,10 @@ bool MemoryFlash::getChannelEnDisStatus(uint8_t channel)
 {
     return bitRead(flash.channelEnDisStatus, channel);
 }
+uint8_t MemoryFlash::getChannelEnDisStatus()
+{
+    return flash.channelEnDisStatus;
+}
 bool MemoryFlash::getDebugMode(void)
 {
     return bitRead(flash.generalStatus, DEBUG_ENABLE);

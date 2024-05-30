@@ -13,6 +13,7 @@
 #include "PinMap.h"
 #include "PictureListID.h"
 #include "Utility\Utility.h"
+#include "PublisherSubscriber/PublisherSubscriber.h"
 
 /*****************************************************************************
  *******************************ESP32S-PIN************************************
@@ -116,15 +117,18 @@ void StateMachine::setup(void)
     while (!LogSerial)
         ;
 
-    rtos->updateStartProgressBar(10);
+    rtos->updateStartProgressBar(5);
     ads->begin();
     rtos->setup();
+    rtos->updateStartProgressBar(5);
     net->setup();
     initTime();
-    rtos->updateStartProgressBar(10);
+    rtos->updateStartProgressBar(5);
     hmi->init();
     sdcard->setup();
-    // initSDCard();
+    rtos->updateStartProgressBar(5);
+    pubSubs->setup();
+
     while (rtos->startProgressBar < 100)
     {
         // Serial.println(String() + "Progress: " + rtos->startProgressBar + " %");
@@ -185,7 +189,6 @@ uint8_t StateMachine::homeScreen(void)
     String tempString;
     char timeString[10];
     char timeNDateString[20];
-    // UBaseType_t mainFreeStackNum = 0;
 
     hmi->showPage("home");
     hmi->waitForPageRespon();
@@ -194,8 +197,10 @@ uint8_t StateMachine::homeScreen(void)
     {
         enDisChannel[i] = fdata->getChannelEnDisStatus(i);
         updateButtonToggleStateToNextion(i);
-        hmi->setStringToNextion((String() + "t_ch" + (i + 1) + ".txt"), "00000.00");
+        prevWeightString[i] = "00000.00";
+        hmi->setStringToNextion((String() + "t_ch" + (i + 1) + ".txt"), prevWeightString[i]);
         hmi->setStringToNextion(String() + "t_mu" + (i + 1) + ".txt", getStringUnit(fdata->getMeasurementUnit()));
+        pubSubs->setWeightString(i, prevWeightString[i]);
     }
 
     batProgressBarShowed = true;
@@ -204,8 +209,14 @@ uint8_t StateMachine::homeScreen(void)
     updateSignalIndicatorToNextion(wifiSignal, true);
     updateBatteryIndicatorToNextion(rtos->batteryPercent, true);
 
+    // while (true)
+    // {
+    //     pubSubs->routineTask();
+    // }
+
     while (true)
     {
+        UBaseType_t mainFreeStackNum = 0;
         // mainFreeStackNum = uxTaskGetStackHighWaterMark(NULL);
         // Serial.printf("mainFreeStackNum: %d bytes\n", mainFreeStackNum);
         // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_01_c1_handle);
@@ -224,7 +235,10 @@ uint8_t StateMachine::homeScreen(void)
         // Serial.printf("task_01_c0_handle: %d bytes\n", mainFreeStackNum);
         // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_02_c0_handle);
         // Serial.printf("task_02_c0_handle: %d bytes\n", mainFreeStackNum);
-        delay(200);
+        // mainFreeStackNum = uxTaskGetStackHighWaterMark(task_03_c0_handle);
+        // Serial.printf("task_03_c0_handle: %d bytes\n", mainFreeStackNum);
+
+        // delay(200);
 
         mtime.updateRTC_N_NTPTime();
 
@@ -500,26 +514,26 @@ uint8_t StateMachine::homeScreen(void)
 
         if (rtos->secondTriggered[5])
         {
-            if (!fdata->isAllChannelDisabled())
+            // if (!fdata->isAllChannelDisabled())
+            // {
+            for (uint8_t i = 0; i < 3; i++)
             {
-                for (uint8_t i = 0; i < 3; i++)
+                if (fdata->getDatalogStatus(i))
                 {
-                    if (fdata->getDatalogStatus(i))
+                    if (!dataLoggingState[i])
                     {
-                        if (!dataLoggingState[i])
-                        {
-                            if (logger->checkSchedule(_on_, i))
-                                dataLoggingState[i] = true;
-                        }
-                        else
-                        {
-                            logger->logData(i);
-                            if (logger->checkSchedule(_off_, i))
-                                dataLoggingState[i] = false;
-                        }
+                        if (logger->checkSchedule(_on_, i))
+                            dataLoggingState[i] = true;
+                    }
+                    else
+                    {
+                        logger->logData(i);
+                        if (logger->checkSchedule(_off_, i))
+                            dataLoggingState[i] = false;
                     }
                 }
             }
+            // }
             rtos->secondTriggered[5] = 0;
         }
     }
@@ -661,6 +675,7 @@ void StateMachine::updateWeightStringToNextion(void)
                 // Serial.println(String() + "Updated: " + " Channel " + (i + 1) + " weight");
             }
             prevWeightString[i] = newWeightString[i];
+            pubSubs->setWeightString(i, prevWeightString[i]);
         }
     }
 }

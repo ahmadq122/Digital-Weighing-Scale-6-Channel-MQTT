@@ -4,10 +4,11 @@
 #include "ADC/ADS1232.h"
 #include "RTOS/RTOS.h"
 #include "Time/MyTime.h"
-#include <HTTPClient.h>
+// #include <HTTPClient.h>
 #include "Utility/Utility.h"
 #include "PictureListID.h"
 #include "MicroSD/MicroSD.h"
+#include "PublisherSubscriber/PublisherSubscriber.h"
 
 void Datalogger::showObjDatalogPage(uint8_t loggerType, bool show)
 {
@@ -908,21 +909,22 @@ void Datalogger::logData(uint8_t loggerType)
             }
             else if (loggerType == remote)
             {
-                if (!fdata->isAllChannelDisabled())
-                {
-                    while (!fdata->getChannelEnDisStatus(remoteUpdateForChannel))
-                    {
-                        if (++remoteUpdateForChannel > 6)
-                            remoteUpdateForChannel = 0;
-                    }
-                    if (!rtos->remoteLogTriggered[remoteUpdateForChannel])
-                    {
-                        rtos->remoteLogTriggered[remoteUpdateForChannel] = true;
-                    }
-                    if (++remoteUpdateForChannel > 6)
-                        remoteUpdateForChannel = 0;
-                    // Serial.println("Remote data logging triggered!");
-                }
+                // if (!fdata->isAllChannelDisabled())
+                // {
+                rtos->remoteLogTriggered = true;
+                // while (!fdata->getChannelEnDisStatus(remoteUpdateForChannel))
+                // {
+                //     if (++remoteUpdateForChannel > 6)
+                //         remoteUpdateForChannel = 0;
+                // }
+                // if (!rtos->remoteLogTriggered[remoteUpdateForChannel])
+                // {
+                //     rtos->remoteLogTriggered[remoteUpdateForChannel] = true;
+                // }
+                // if (++remoteUpdateForChannel > 6)
+                //     remoteUpdateForChannel = 0;
+                // Serial.println("Remote data logging triggered!");
+                // }
             }
             rtos->counterDownSecondsLog[loggerType] = fdata->getPeriodDatalog(loggerType);
         }
@@ -932,41 +934,42 @@ void Datalogger::logData(uint8_t loggerType)
 ///////////THINKSPEAK DATA LOGGER
 void Datalogger::remoteLogging(uint8_t channel)
 {
-    String serverPath = thingSpeakServer + fdata->getKeyAPI() + "&field" + (channel + 1) + "=" + ads->getWeightInGram(channel);
-    String payload = "Payload : ";
-    int httpResponseCode = 0;
+    pubSubs->routineTask(channel);
+    // String serverPath = thingSpeakServer + fdata->getKeyAPI() + "&field" + (channel + 1) + "=" + ads->getWeightInGram(channel);
+    // String payload = "Payload : ";
+    // int httpResponseCode = 0;
 
-    HTTPClient http;
+    // HTTPClient http;
 
-    if (rtos->wifiConnected)
-    {
-        // Serial.println(String() + "Log data Thingspeak: Channel " + (channel + 1));
-        //  Your Domain name with URL path or IP address with path
-        http.begin(serverPath.c_str());
+    // if (rtos->wifiConnected)
+    // {
+    //     // Serial.println(String() + "Log data Thingspeak: Channel " + (channel + 1));
+    //     //  Your Domain name with URL path or IP address with path
+    //     http.begin(serverPath.c_str());
 
-        // Send HTTP GET request
-        httpResponseCode = http.GET();
+    //     // Send HTTP GET request
+    //     httpResponseCode = http.GET();
 
-        if (httpResponseCode > 0)
-        {
-            // Serial.print(String() + "Channel " + (channel + 1) + " -> HTTP Response code: ");
-            // Serial.println(httpResponseCode);
-            payload += http.getString();
-            // Serial.println(payload);
-        }
-        else
-        {
-            // Serial.print("Error code: ");
-            // Serial.println(httpResponseCode);
-        }
+    //     if (httpResponseCode > 0)
+    //     {
+    //         // Serial.print(String() + "Channel " + (channel + 1) + " -> HTTP Response code: ");
+    //         // Serial.println(httpResponseCode);
+    //         payload += http.getString();
+    //         // Serial.println(payload);
+    //     }
+    //     else
+    //     {
+    //         // Serial.print("Error code: ");
+    //         // Serial.println(httpResponseCode);
+    //     }
 
-        // Free resources
-        http.end();
-    }
-    else
-    {
-        // Serial.println("WiFi Disconnected");
-    }
+    //     // Free resources
+    //     http.end();
+    // }
+    // else
+    // {
+    //     // Serial.println("WiFi Disconnected");
+    // }
 }
 
 Datalogger *logger = new (Datalogger);

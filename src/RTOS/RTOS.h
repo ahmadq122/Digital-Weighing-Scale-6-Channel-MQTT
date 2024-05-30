@@ -18,7 +18,7 @@ public:
     uint32_t interruptSeconds = 0;
     uint16_t dimmCounterDownSecond = 30;
     uint8_t currentBrightness = 100;
-    bool remoteLogTriggered[6] = {false};
+    bool remoteLogTriggered = false;
     bool secondBlink = false;
     bool secondTriggered[10] = {false};
     bool minuteTriggered = {false};
@@ -40,7 +40,6 @@ private:
 extern RealTimeOS *rtos;
 extern TaskHandle_t task_01_c1_handle;
 extern TaskHandle_t task_02_c1_handle;
-// extern TaskHandle_t task_03_c1_handle;
 extern TaskHandle_t task_04_c1_handle;
 extern TaskHandle_t task_05_c1_handle;
 extern TaskHandle_t task_06_c1_handle;
@@ -48,5 +47,6 @@ extern TaskHandle_t task_07_c1_handle;
 
 extern TaskHandle_t task_01_c0_handle;
 extern TaskHandle_t task_02_c0_handle;
+extern TaskHandle_t task_03_c0_handle;
 
 #endif

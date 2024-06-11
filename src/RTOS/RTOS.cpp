@@ -327,7 +327,8 @@ void task_06_c1(void *pvParameters) // This is a task.
 
     for (;;) // A Task shall never return or exit.
     {
-        if (rtos->remoteLogTriggered)
+        // Serial.println("Remote triggered! " + String(rtos->remoteLogTriggered));
+        if (rtos->remoteLogTriggered && rtos->wifiConnected)
         {
             // Serial.println("Remote triggered! " + String(fdata->getChannelEnDisStatus(), 2));
             logger->remoteLogging(fdata->getChannelEnDisStatus());

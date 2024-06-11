@@ -4,6 +4,7 @@
 #include "../Nextion/Nextion.h"
 #include "RTOS/RTOS.h"
 #include "PictureListID.h"
+#include "Utility/Utility.h"
 
 void Network::setup(void)
 {
@@ -17,7 +18,7 @@ void Network::setup(void)
         WiFi.begin(fdata->getSSID(), fdata->getPassword());
         // WiFi.setAutoReconnect(true);
     }
-    //Serial.println("Wifi Setup done");
+    // Serial.println("Wifi Setup done");
 }
 
 const char *getStringEncrypt(byte parameter)
@@ -40,20 +41,30 @@ const char *getStringEncrypt(byte parameter)
         return "UNKNOWN";
 }
 
-String getIPAdderss(void)
+char *getIPAdderss(void)
 {
-    String ip;
-    ip = String() + WiFi.localIP()[0] + "." + WiFi.localIP()[1] + "." + WiFi.localIP()[2] + "." + WiFi.localIP()[3];
-    return ip;
+    static char buffer[30];
+    // String ip;
+    sprintf(buffer, "%s.%s.%s.%s", String(WiFi.localIP()[0]).c_str(), String(WiFi.localIP()[1]).c_str(), String(WiFi.localIP()[2]).c_str(), String(WiFi.localIP()[3]).c_str());
+    // ip = String() + WiFi.localIP()[0] + "." + WiFi.localIP()[1] + "." + WiFi.localIP()[2] + "." + WiFi.localIP()[3];
+    return buffer;
 }
 
-String getStringPasswordMask(const char *string)
+char *getStringPasswordMask(const char *string)
 {
-    String str = string;
-    uint8_t length = str.length();
+    char buffer[20];
+    strcpy(buffer, string);
+    // String str = string;
+    uint8_t length = 0; // str.length();
+    uint8_t i = 0;
+    while (buffer[i] != '\0')
+    {
+        length++;
+        i++;
+    }
 
-    char mask[length + 1];
-    for (byte i = 0; i < length; i++)
+    static char mask[20];
+    for (i = 0; i < length; i++)
         mask[i] = '*';
     mask[length] = '\0';
     return mask;
@@ -61,33 +72,51 @@ String getStringPasswordMask(const char *string)
 
 void Network::showNetworkProperty(bool flag)
 {
+    char buffer[50];
     if (flag)
     {
         for (uint8_t i = 1; i <= 6; i++)
         {
-            hmi->setVisObjectNextion(String() + "q" + i, true);
-            hmi->setVisObjectNextion(String() + "t" + i, true);
+            sprintf(buffer, "q%d", i);
+            hmi->setVisObjectNextion(buffer, true);
+            sprintf(buffer, "t%d", i);
+            hmi->setVisObjectNextion(buffer, true);
             delay(20);
+            sprintf(buffer, "t%d.txt", i);
             if (i == 1)
-                hmi->setStringToNextion(String() + "t" + i + ".txt", WiFi.isConnected() ? "Connected" : "Unconnected");
+            {
+                hmi->setStringToNextion(buffer, WiFi.isConnected() ? "Connected" : "Unconnected");
+            }
             else if (i == 2)
-                hmi->setStringToNextion(String() + "t" + i + ".txt", fdata->getSSID());
+            {
+                hmi->setStringToNextion(buffer, fdata->getSSID());
+            }
             else if (i == 3)
-                hmi->setStringToNextion(String() + "t" + i + ".txt", String() + WiFi.RSSI());
+            {
+                hmi->setStringToNextion(buffer, utils.integerToString(WiFi.RSSI()));
+            }
             else if (i == 4)
-                hmi->setStringToNextion(String() + "t" + i + ".txt", getIPAdderss());
+            {
+                hmi->setStringToNextion(buffer, getIPAdderss());
+            }
             else if (i == 5)
-                hmi->setStringToNextion(String() + "t" + i + ".txt", getStringEncrypt(fdata->getEncryptType()));
+            {
+                hmi->setStringToNextion(buffer, getStringEncrypt(fdata->getEncryptType()));
+            }
             else if (i == 6)
-                hmi->setStringToNextion(String() + "t" + i + ".txt", getStringPasswordMask(fdata->getPassword()));
+            {
+                hmi->setStringToNextion(buffer, getStringPasswordMask(fdata->getPassword()));
+            }
         }
     }
     else
     {
         for (uint8_t i = 1; i <= 6; i++)
         {
-            hmi->setVisObjectNextion(String() + "q" + i, false);
-            hmi->setVisObjectNextion(String() + "t" + i, false);
+            sprintf(buffer, "q%d", i);
+            hmi->setVisObjectNextion(buffer, false);
+            sprintf(buffer, "t%d", i);
+            hmi->setVisObjectNextion(buffer, false);
         }
     }
 }
@@ -100,7 +129,7 @@ bool Network::networkConfig(void)
 
     hmi->showPage("netconf");
     hmi->waitForPageRespon();
-    //Serial.println("Network Config page opened");
+
     netEnDis = fdata->getNetworkEnable();
 
     hmi->setIntegerToNextion("b1.val", netEnDis);
@@ -111,9 +140,8 @@ bool Network::networkConfig(void)
         {
             needToRefreshStatus = true;
             WiFi.begin(fdata->getSSID(), fdata->getPassword());
-            //Serial.println(String() + "Connecting to " + fdata->getSSID());
+            // Serial.println(String() + "Connecting to " + fdata->getSSID());
         }
-
         if (fdata->getNetworkEnable())
         {
             hmi->setVisObjectNextion("b2", true);
@@ -124,7 +152,7 @@ bool Network::networkConfig(void)
             hmi->setVisObjectNextion("b2", false);
             showNetworkProperty(false);
         }
-        //Wait for button press
+        // Wait for button press
         while (!hmi->checkAnyButtonPressed(&button))
         {
             // hmi->serialEvent_2();
@@ -145,7 +173,7 @@ bool Network::networkConfig(void)
                 if (WiFi.isConnected())
                 {
                     WiFi.disconnect();
-                    //Serial.println("Network disconnected!");
+                    // Serial.println("Network disconnected!");
                 }
             }
         }
@@ -154,7 +182,7 @@ bool Network::networkConfig(void)
             return true;
         }
     }
-    return false; //entering the scanning page;
+    return false; // entering the scanning page;
 }
 
 void Network::networkScanning(void)
@@ -168,10 +196,11 @@ void Network::networkScanning(void)
     uint8_t progress = 0;
     String str;
     uint8_t button;
+    char buffer[30];
 
     hmi->showPage("netscan");
     hmi->waitForPageRespon();
-    //Serial.println("Network Scan page opened");
+    // Serial.println("Network Scan page opened");
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
 
@@ -209,8 +238,9 @@ __scan:
 
     if (numberOfNetworkFound[selectedScan] == 0)
     {
+        hmi->setStringToNextion("nonet.txt", "No Network Found!");
         hmi->setVisObjectNextion("nonet", true);
-        //Serial.println("No network found!");
+        // Serial.println("No network found!");
         while (!hmi->getExitPageFlag())
         {
             while (!hmi->checkAnyButtonPressed(&button))
@@ -227,18 +257,19 @@ __scan:
     else
     {
         showNetworkList(numberOfNetworkFound[selectedScan]);
-        //Serial.println(String() + numberOfNetworkFound[selectedScan] + " Networks found");
+        // Serial.println(String() + numberOfNetworkFound[selectedScan] + " Networks found");
         while (!hmi->getExitPageFlag())
         {
             for (int i = 0; i < numberOfNetworkFound[selectedScan]; ++i)
             {
-                if (isStoredNetwork(ssidScanned[selectedScan][i]))
+                if (isStoredNetwork(ssidScanned[selectedScan][i].c_str()))
                     showSelectedNetworkIndicator(i, numberOfNetworkFound[selectedScan]);
                 str = ssidScanned[selectedScan][i];
                 str += ":";
                 str += rssiScanned[selectedScan][i];
-                //Serial.println(String() + (i + 1) + ". " + str);
-                hmi->setStringToNextion(String() + "b" + i + ".txt", str);
+                // Serial.println(String() + (i + 1) + ". " + str);
+                sprintf(buffer, "b%d.txt", i);
+                hmi->setStringToNextion(buffer, str.c_str());
             }
             while (!hmi->checkAnyButtonPressed(&button))
             {
@@ -248,33 +279,45 @@ __scan:
 
             if (hmi->getDataButton(button))
             {
-                if (fdata->setSSID(ssidScanned[selectedScan][button].c_str()))
+                if (ssidScanned[selectedScan][button].length() < MAX_SSID_CHAR)
                 {
-                    showSelectedNetworkIndicator(button, numberOfNetworkFound[selectedScan]);
-                    fdata->setEncryptType(encryptType[selectedScan][button]);
-                    WiFi.mode(WIFI_STA);
-                    WiFi.disconnect();
-                    delay(100);
+                    if (fdata->setSSID(ssidScanned[selectedScan][button].c_str()))
+                    {
+                        showSelectedNetworkIndicator(button, numberOfNetworkFound[selectedScan]);
+                        fdata->setEncryptType(encryptType[selectedScan][button]);
+                        WiFi.mode(WIFI_STA);
+                        WiFi.disconnect();
+                        delay(100);
+                    }
+                    rtos->wifiConnected = checkConnection();
+                    if (!rtos->wifiConnected)
+                    {
+                        hmi->showPage("keyboard");
+                        hmi->waitForPageRespon();
+                        hmi->setIntegerToNextion("kb_hide.val", 1);
+                        hmi->setIntegerToNextion("kb_string.pw", 1);
+
+                        button = 0;
+                        while (!hmi->checkAnyButtonPressed(&button))
+                        {
+                        }
+                        if (hmi->getDataButton(1))
+                        {
+                            fdata->setPassword(hmi->getDataString(0));
+                        }
+                        hmi->showPage("netscan");
+                        hmi->waitForPageRespon();
+                        showNetworkList(numberOfNetworkFound[selectedScan]);
+                    }
                 }
-                rtos->wifiConnected = checkConnection();
-                if (!rtos->wifiConnected)
+                else
                 {
-                    hmi->showPage("keyboard");
-                    hmi->waitForPageRespon();
-                    hmi->setIntegerToNextion("kb_hide.val", 1);
-                    hmi->setIntegerToNextion("kb_string.pw", 1);
-                    
-                    button = 0;
-                    while (!hmi->checkAnyButtonPressed(&button))
-                    {
-                    }
-                    if (hmi->getDataButton(1))
-                    {
-                        fdata->setPassword(hmi->getDataString(0));
-                    }
-                    hmi->showPage("netscan");
-                    hmi->waitForPageRespon();
-                    showNetworkList(numberOfNetworkFound[selectedScan]);
+                    // char* nonet = "No Network Found";
+                    hmi->setStringToNextion("nonet.txt", "Invalid SSID!");
+                    hmi->setVisObjectNextion("nonet", true);
+                    delay(2000);
+                    hmi->setVisObjectNextion("nonet", false);
+                    // Serial.println("SSID selected must be no more than 11 characters!");
                 }
             }
         }
@@ -283,32 +326,39 @@ __scan:
 
 void Network::showNetworkList(uint8_t noOfList)
 {
+    char buffer[10];
     if (noOfList > 10)
         return;
     for (uint8_t i = 0; i < noOfList; i++)
     {
-        hmi->setVisObjectNextion(String() + "b" + i, true);
+        sprintf(buffer, "b%d", i);
+        hmi->setVisObjectNextion(buffer, true);
     }
     delay(500);
 }
 
 void Network::showSelectedNetworkIndicator(uint8_t selected, uint8_t noOfList)
 {
+    char buffer[20];
     if (noOfList > 10)
         return;
-    hmi->setIntegerToNextion(String() + "b" + selected + ".picc", Network_List_Select);
+    sprintf(buffer, "b%d.picc", selected);
+    hmi->setIntegerToNextion(buffer, Network_List_Select);
     for (uint8_t i = 0; i < noOfList; i++)
     {
         if (i == selected)
             continue;
         else
-            hmi->setIntegerToNextion(String() + "b" + i + ".picc", Network_List_Bkg);
+        {
+            sprintf(buffer, "b%d.picc", i);
+            hmi->setIntegerToNextion(buffer, Network_List_Bkg);
+        }
     }
 }
 
-bool Network::isStoredNetwork(String networkName)
+bool Network::isStoredNetwork(const char *networkName)
 {
-    if (networkName == String() + fdata->getSSID())
+    if (!strcmp(networkName, fdata->getSSID()))
         return true;
     else
         return false;
@@ -331,11 +381,11 @@ bool Network::checkConnection(void)
 
     if (WiFi.isConnected())
     {
-        //Serial.println("Network connected!");
+        // Serial.println("Network connected!");
     }
     else
     {
-        //Serial.println("Network connection failed!");
+        // Serial.println("Network connection failed!");
         WiFi.begin(fdata->getSSID(), fdata->getPassword());
         while (!WiFi.isConnected() && counter <= 10)
         {
@@ -344,7 +394,7 @@ bool Network::checkConnection(void)
         }
         if (WiFi.isConnected())
         {
-            //Serial.println("Network connected!");
+            // Serial.println("Network connected!");
         }
     }
     return WiFi.isConnected();
@@ -376,7 +426,7 @@ bool Network::checkConnection(uint8_t *wifiSignal, bool *wifiConnectionTriggered
         if (*wifiConnectionTriggered && previousConnectionState != true)
         {
             previousConnectionState = true;
-            //Serial.println("Network connected!");
+            // Serial.println("Network connected!");
         }
     }
     else
@@ -386,7 +436,7 @@ bool Network::checkConnection(uint8_t *wifiSignal, bool *wifiConnectionTriggered
         if (*wifiConnectionTriggered && previousConnectionState != false)
         {
             previousConnectionState = false;
-            //Serial.println("Network connection failed!");
+            // Serial.println("Network connection failed!");
         }
     }
     if (*wifiConnectionTriggered)
@@ -415,4 +465,4 @@ uint8_t Network::calculateRSSILevel(int value)
         return 0;
 }
 
-Network* net = new(Network);
+Network *net = new (Network);

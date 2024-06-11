@@ -87,7 +87,7 @@ uint8_t Datalogger::setting(uint8_t loggerType)
 
     if (loggerType == serial)
     {
-        hmi->setStringToNextion("b1.txt", String() + fdata->getBaudrateSerial(logging));
+        hmi->setStringToNextion("b1.txt", utils.integerToString(fdata->getBaudrateSerial(logging)));
     }
     hmi->setIntegerToNextion("b0.val", enDis);
     hmi->setIntegerToNextion("q2.picc", enDis ? Datalog_Serial_Prs_Bkg : Datalog_Serial_Normal_Bkg);
@@ -169,7 +169,7 @@ uint8_t Datalogger::setting(uint8_t loggerType)
                                     continue;
                             }
                         }
-                        hmi->setStringToNextion("b1.txt", String() + fdata->getBaudrateSerial(logging));
+                        hmi->setStringToNextion("b1.txt", utils.integerToString(fdata->getBaudrateSerial(logging)));
                         updateSelectedBaudrateToNextion(logging, fdata->getBaudrateSerialIndex(logging));
                         delay(1500);
                         hmi->showSavingBarAnimation(200);
@@ -180,13 +180,41 @@ uint8_t Datalogger::setting(uint8_t loggerType)
                     {
                         hmi->showPage("keyboard");
                         hmi->waitForPageRespon();
-                        hmi->setStringToNextion("kb_string.txt", fdata->getKeyAPI());
+                        hmi->setStringToNextion("kb_string.txt", fdata->getBrokerMqtt());
                         btn = 0;
                         while (!hmi->checkAnyButtonPressed(&btn))
                         {
                         }
                         if (hmi->getDataButton(1))
-                            fdata->setKeyAPI(hmi->getDataString(0));
+                        {
+                            char buffer[MAX_BROKER_CHAR];
+                            String bufStr = hmi->getDataString(0);
+                            if (bufStr.length() < MAX_BROKER_CHAR)
+                            {
+                                char server[20];
+                                char port[6];
+                                strcpy(buffer, bufStr.c_str());
+                                strcpy(server, utils.getSplitString(buffer, ':', 0));
+                                strcpy(port, utils.getSplitString(buffer, ':', 1));
+
+                                if (strcmp(server, "N/A") && strcmp(port, "N/A") && utils.isContainingNumber(port))
+                                    fdata->setBrokerMqtt(buffer);
+                                else
+                                {
+                                    hmi->setStringToNextion("warn.txt", "Invalid input!");
+                                    hmi->setVisObjectNextion("warn", true);
+                                    delay(2000);
+                                    hmi->setVisObjectNextion("warn", false);
+                                }
+                            }
+                            else
+                            {
+                                hmi->setStringToNextion("warn.txt", "Invalid input!");
+                                hmi->setVisObjectNextion("warn", true);
+                                delay(2000);
+                                hmi->setVisObjectNextion("warn", false);
+                            }
+                        }
                         return 0;
                         // goto __start;
                     }
@@ -251,12 +279,18 @@ uint8_t Datalogger::setting(uint8_t loggerType)
 
 void Datalogger::updateSchedulerSettingState(uint8_t settingState)
 {
+    char buffer[10];
     for (uint8_t j = 0; j < 6; j++)
     {
+        sprintf(buffer, "b%d.pco", j);
         if (j == settingState)
-            hmi->setIntegerToNextion(String() + "b" + j + ".pco", color_cyan);
+        {
+            hmi->setIntegerToNextion(buffer, color_cyan);
+        }
         else
-            hmi->setIntegerToNextion(String() + "b" + j + ".pco", color_white);
+        {
+            hmi->setIntegerToNextion(buffer, color_white);
+        }
     }
 }
 
@@ -346,6 +380,7 @@ void Datalogger::updateTimeScheduler(uint8_t loggerType)
     uint8_t hour[4];
     uint8_t minute[4];
     bool enable[4];
+    char buffer[20];
 
     fdata->getTimeSchedulerDatalog(_on_, loggerType, 0, &hour[0], &minute[0]);
     fdata->getTimeSchedulerDatalog(_on_, loggerType, 1, &hour[1], &minute[1]);
@@ -357,10 +392,14 @@ void Datalogger::updateTimeScheduler(uint8_t loggerType)
     enable[2] = fdata->getEnableTimeScheduler(_off_, loggerType, 0);
     enable[3] = fdata->getEnableTimeScheduler(_off_, loggerType, 1);
 
-    hmi->setStringToNextion("t0.txt", (String() + utils.integerToString(hour[0], 2) + ":" + utils.integerToString(minute[0], 2)));
-    hmi->setStringToNextion("t1.txt", (String() + utils.integerToString(hour[1], 2) + ":" + utils.integerToString(minute[1], 2)));
-    hmi->setStringToNextion("t2.txt", (String() + utils.integerToString(hour[2], 2) + ":" + utils.integerToString(minute[2], 2)));
-    hmi->setStringToNextion("t3.txt", (String() + utils.integerToString(hour[3], 2) + ":" + utils.integerToString(minute[3], 2)));
+    sprintf(buffer, "%s:%s", utils.integerToString(hour[0], 2), utils.integerToString(minute[0], 2));
+    hmi->setStringToNextion("t0.txt", buffer);
+    sprintf(buffer, "%s:%s", utils.integerToString(hour[1], 2), utils.integerToString(minute[1], 2));
+    hmi->setStringToNextion("t1.txt", buffer);
+    sprintf(buffer, "%s:%s", utils.integerToString(hour[2], 2), utils.integerToString(minute[2], 2));
+    hmi->setStringToNextion("t2.txt", buffer);
+    sprintf(buffer, "%s:%s", utils.integerToString(hour[3], 2), utils.integerToString(minute[3], 2));
+    hmi->setStringToNextion("t3.txt", buffer);
     hmi->setStringToNextion("t4.txt", utils.integerToString(hour[0], 2));
     hmi->setStringToNextion("t5.txt", utils.integerToString(minute[0], 2));
     hmi->setIntegerToNextion("bt0.val", enable[0]);
@@ -376,6 +415,7 @@ void Datalogger::updateSelectedTimeScheduler(uint8_t loggerType, uint8_t optSele
     char str[6];
     uint8_t hour[4];
     uint8_t minute[4];
+    char buffer[30];
 
     switch (optSelected)
     {
@@ -410,11 +450,15 @@ void Datalogger::updateSelectedTimeScheduler(uint8_t loggerType, uint8_t optSele
     strcat(str, ":");
     strcat(str, minuteSelectedStr);
 
-    hmi->setStringToNextion(String() + "t" + optSelected + ".txt", str);
+    sprintf(buffer, "t%d.txt", optSelected);
+    hmi->setStringToNextion(buffer, str);
     hmi->setStringToNextion("t4.txt", hourSelectedStr);
     hmi->setStringToNextion("t5.txt", minuteSelectedStr);
     for (uint8_t i = 0; i < 4; i++)
-        hmi->setIntegerToNextion(String() + "t" + i + ".pco", (i == optSelected) ? color_cyan : color_white);
+    {
+        sprintf(buffer, "t%d.pco", i);
+        hmi->setIntegerToNextion(buffer, (i == optSelected) ? color_cyan : color_white);
+    }
 }
 
 void Datalogger::timeScheduler(uint8_t loggerType)
@@ -550,6 +594,7 @@ void Datalogger::updateDateScheduler(uint8_t loggerType)
     uint8_t month[2];
     uint8_t year[2];
     bool enable[2];
+    char buffer[30];
 
     fdata->getDateSchedulerDatalog(_on_, loggerType, &date[0], &month[0], &year[0]);
     fdata->getDateSchedulerDatalog(_off_, loggerType, &date[1], &month[1], &year[1]);
@@ -557,8 +602,10 @@ void Datalogger::updateDateScheduler(uint8_t loggerType)
     enable[0] = fdata->getEnableDateScheduler(_on_, loggerType);
     enable[1] = fdata->getEnableDateScheduler(_off_, loggerType);
 
-    hmi->setStringToNextion("t0.txt", (String() + utils.integerToString(date[0], 2) + "/" + utils.integerToString(month[0], 2) + "/" + utils.integerToString(year[0], 2)));
-    hmi->setStringToNextion("t1.txt", (String() + utils.integerToString(date[1], 2) + "/" + utils.integerToString(month[0], 2) + "/" + utils.integerToString(year[1], 2)));
+    sprintf(buffer, "%s/%s/%s", utils.integerToString(date[0], 2), utils.integerToString(month[0], 2), utils.integerToString(year[0], 2));
+    hmi->setStringToNextion("t0.txt", buffer);
+    sprintf(buffer, "%s/%s/%s", utils.integerToString(date[1], 2), utils.integerToString(month[1], 2), utils.integerToString(year[1], 2));
+    hmi->setStringToNextion("t1.txt", buffer);
     hmi->setStringToNextion("t2.txt", utils.integerToString(date[0], 2));
     hmi->setStringToNextion("t3.txt", utils.integerToString(month[0], 2));
     hmi->setStringToNextion("t4.txt", utils.integerToString(year[0], 2));
@@ -575,6 +622,7 @@ void Datalogger::updateSelectedDateScheduler(uint8_t loggerType, uint8_t optSele
     uint8_t date[2];
     uint8_t month[2];
     uint8_t year[2];
+    char buffer[20];
 
     switch (optSelected)
     {
@@ -605,12 +653,16 @@ void Datalogger::updateSelectedDateScheduler(uint8_t loggerType, uint8_t optSele
     strcat(str, "/");
     strcat(str, yearSelectedStr);
 
-    hmi->setStringToNextion(String() + "t" + optSelected + ".txt", str);
+    sprintf(buffer, "t%d.txt", optSelected);
+    hmi->setStringToNextion(buffer, str);
     hmi->setStringToNextion("t2.txt", dateSelectedStr);
     hmi->setStringToNextion("t3.txt", monthSelectedStr);
     hmi->setStringToNextion("t4.txt", yearSelectedStr);
     for (uint8_t i = 0; i < 2; i++)
-        hmi->setIntegerToNextion(String() + "t" + i + ".pco", (i == optSelected) ? color_cyan : color_white);
+    {
+        sprintf(buffer, "t%d.pco", i);
+        hmi->setIntegerToNextion(buffer, (i == optSelected) ? color_cyan : color_white);
+    }
 }
 
 void Datalogger::dateScheduler(uint8_t loggerType)
@@ -724,6 +776,7 @@ void Datalogger::dateScheduler(uint8_t loggerType)
 
 void Datalogger::showBaudrateOption(bool type, bool show)
 {
+    char buffer[20];
     hmi->setVisObjectNextion("b0", !show);
     hmi->setVisObjectNextion("q2", !show);
     hmi->setVisObjectNextion("b2", !show);
@@ -731,11 +784,16 @@ void Datalogger::showBaudrateOption(bool type, bool show)
     {
         for (uint8_t i = 3; i <= 9; i++)
         {
-            hmi->setVisObjectNextion(String() + "b" + i, !show);
+            sprintf(buffer, "b%d", i);
             if (i < 6)
-                hmi->setVisObjectNextion(String() + "t" + (i - 3), !show);
+            {
+                sprintf(buffer, "t%d", (i - 3));
+            }
             if (i < 5)
-                hmi->setVisObjectNextion(String() + "q" + (i - 3), !show);
+            {
+                sprintf(buffer, "q%d", (i - 3));
+            }
+            hmi->setVisObjectNextion(buffer, !show);
         }
         hmi->setVisObjectNextion("q5", show);
     }
@@ -745,33 +803,43 @@ void Datalogger::showBaudrateOption(bool type, bool show)
 
     for (uint i = 10; i <= 19; i++)
     {
-        hmi->setVisObjectNextion(String() + "b" + i, show);
+        sprintf(buffer, "b%d", i);
+        hmi->setVisObjectNextion(buffer, show);
     }
     if (!show)
     {
         hmi->setVisObjectNextion("q5", show);
         for (uint8_t i = 3; i <= 9; i++)
         {
-            hmi->setVisObjectNextion(String() + "b" + i, !show);
+            sprintf(buffer, "b%d", i);
             if (i < 6)
-                hmi->setVisObjectNextion(String() + "t" + (i - 3), !show);
+                sprintf(buffer, "t%d", (i - 3));
             if (i < 5)
-                hmi->setVisObjectNextion(String() + "q" + (i - 3), !show);
+                sprintf(buffer, "q%d", (i - 3));
+
+            hmi->setVisObjectNextion(buffer, !show);
         }
     }
 }
 
 void Datalogger::updateSelectedBaudrateToNextion(bool type, uint8_t selected)
 {
+    char buffer[20];
     fdata->setBaudrateSerial(type, selected);
     // Serial.println(String() + "Baudrate 1 set: " + fdata->getBaudrateSerial(type));
 
     for (uint8_t i = 10; i <= 19; i++)
     {
         if ((i - 10) == selected)
-            hmi->setIntegerToNextion(String() + "b" + i + ".picc", Debug_Baud_Select);
+        {
+            sprintf(buffer, "b%d.picc", i);
+            hmi->setIntegerToNextion(buffer, Debug_Baud_Select);
+        }
         else
-            hmi->setIntegerToNextion(String() + "b" + i + ".picc", Debug_Normal_Btn);
+        {
+            sprintf(buffer, "b%d.picc", i);
+            hmi->setIntegerToNextion(buffer, Debug_Normal_Btn);
+        }
     }
 }
 
@@ -864,8 +932,10 @@ bool Datalogger::checkSchedule(bool scheduleType, uint8_t loggerType)
 void Datalogger::logData(uint8_t loggerType)
 {
     String logMessage;
+    // Serial.println(String() + "log data " + loggerType + " " + fdata->getDatalogStatus(loggerType));
     if (fdata->getDatalogStatus(loggerType))
     {
+        // Serial.println(String() + "counterDownSecondsLog " + loggerType + " " + rtos->counterDownSecondsLog[loggerType]);
         if (!rtos->counterDownSecondsLog[loggerType])
         {
             if (loggerType == serial)
@@ -912,6 +982,7 @@ void Datalogger::logData(uint8_t loggerType)
                 // if (!fdata->isAllChannelDisabled())
                 // {
                 rtos->remoteLogTriggered = true;
+                // Serial.println(String() + "remoteLogTriggered" + true);
                 // while (!fdata->getChannelEnDisStatus(remoteUpdateForChannel))
                 // {
                 //     if (++remoteUpdateForChannel > 6)

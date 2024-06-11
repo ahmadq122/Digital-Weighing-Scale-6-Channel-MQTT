@@ -50,8 +50,8 @@ public:
     void begin(void);
     bool init(uint8_t board);
     bool dataRead(uint8_t board, bool channel, bool calibrating);
-    String getStringWeightInUnit(uint8_t channel);
-    String getStringWeightInGram(uint8_t channel);
+    char* getStringWeightInUnit(uint8_t channel);
+    char* getStringWeightInGram(uint8_t channel);
     float getWeightInGram(uint8_t channel);
     uint8_t PDWN;
     bool isAvailable[3];

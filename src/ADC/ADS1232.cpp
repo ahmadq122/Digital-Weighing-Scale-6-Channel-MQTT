@@ -6,7 +6,7 @@
 
 void ADS1232::begin(void)
 {
-    //Serial.println("ADS1232 Initial Pin");
+    // Serial.println("ADS1232 Initial Pin");
 
     PDWN = Pin_PowerDown;
     SCLK[0] = Pin_SCLK_ADS1;
@@ -37,24 +37,24 @@ void ADS1232::begin(void)
         digitalWrite(speed, HIGH);
     delay(10);
     powerUp();
-    //Serial.println("Init Pin done!");
+    // Serial.println("Init Pin done!");
 }
 
 bool ADS1232::dataReady(uint8_t board)
 {
-    return digitalRead(DOUT[board]) == LOW; //return true if meet the condition
+    return digitalRead(DOUT[board]) == LOW; // return true if meet the condition
 }
 
 void ADS1232::powerUp(void)
 {
-    //Serial.println(String() + "Power up ADS boards");
+    // Serial.println(String() + "Power up ADS boards");
     delayMicroseconds(26);
     digitalWrite(PDWN, HIGH);
     delayMicroseconds(26);
     digitalWrite(PDWN, LOW);
     delayMicroseconds(26);
     digitalWrite(PDWN, HIGH);
-    //Serial.println(String() + "ADS boards up");
+    // Serial.println(String() + "ADS boards up");
 }
 
 void ADS1232::powerDown(void)
@@ -64,12 +64,12 @@ void ADS1232::powerDown(void)
 void ADS1232::setChannel(uint8_t board, uint8_t channel)
 {
     if (channel)
-        digitalWrite(A0[board], HIGH); //channel 2 is selected
+        digitalWrite(A0[board], HIGH); // channel 2 is selected
     else
-        digitalWrite(A0[board], LOW); //channel 1 is selected
+        digitalWrite(A0[board], LOW); // channel 1 is selected
 }
 
-//This function must be called in setup
+// This function must be called in setup
 bool ADS1232::init(uint8_t board)
 {
     uint8_t timeOutCounter = 0;
@@ -79,7 +79,7 @@ bool ADS1232::init(uint8_t board)
         rtos->updateStartProgressBar(10);
     }
 
-    //Serial.println(String() + "Init ADS board " + (board + 1) + " Channel " + 0);
+    // Serial.println(String() + "Init ADS board " + (board + 1) + " Channel " + 0);
     index[board][0] = 0;
     adcRead[board][0] = 0;
     while (adcRead[board][0] == 0)
@@ -88,12 +88,12 @@ bool ADS1232::init(uint8_t board)
             timeOutCounter++;
         if (timeOutCounter > 5)
         {
-            //Serial.println(String() + "Init ADS board " + (board + 1) + " Failed!");
+            // Serial.println(String() + "Init ADS board " + (board + 1) + " Failed!");
             return false;
         }
     }
     timeOutCounter = 0;
-    //Serial.println(String() + "Init ADS board " + (board + 1) + " Channel " + 1);
+    // Serial.println(String() + "Init ADS board " + (board + 1) + " Channel " + 1);
     index[board][1] = 0;
     adcRead[board][1] = 0;
     while (adcRead[board][1] == 0)
@@ -102,12 +102,12 @@ bool ADS1232::init(uint8_t board)
             timeOutCounter++;
         if (timeOutCounter > 5)
         {
-            //Serial.println(String() + "Init ADS board " + (board + 1) + " Failed!");
+            // Serial.println(String() + "Init ADS board " + (board + 1) + " Failed!");
             return false;
         }
     }
 
-    //Serial.println(String() + "Init ADS board " + (board + 1) + " Finished");
+    // Serial.println(String() + "Init ADS board " + (board + 1) + " Finished");
     return true;
 }
 
@@ -136,11 +136,11 @@ bool ADS1232::dataRead(uint8_t board, bool channel, bool calibrating)
     }
 
     /* A high to low transition on the data pin means that the ADS1231
-         * has finished a measurement (see datasheet page 13).
-         * This can take up to 100ms (the ADS1231 runs at 10 samples per
-         * second!).
-         * Note that just testing for the state of the pin is unsafe.
-         */
+     * has finished a measurement (see datasheet page 13).
+     * This can take up to 100ms (the ADS1231 runs at 10 samples per
+     * second!).
+     * Note that just testing for the state of the pin is unsafe.
+     */
 
     if (calibrating)
     {
@@ -184,24 +184,24 @@ bool ADS1232::dataRead(uint8_t board, bool channel, bool calibrating)
     }
 
     /* From datasheet (page 19): The data must be retrieved before
-             * new data are updated or else it will be overwritten
-             * This means that I need to wait DOUT goes LOW.
-             * to LOW (that's the signal I have new data) and get it in 12.5 or 100 ms 100ms (4.9152MHz)
-             */
+     * new data are updated or else it will be overwritten
+     * This means that I need to wait DOUT goes LOW.
+     * to LOW (that's the signal I have new data) and get it in 12.5 or 100 ms 100ms (4.9152MHz)
+     */
     if (dataReady(board))
     {
         digitalWrite(SCLK[board], 0);
-        //pulse the clock pin 24 times to read the data
+        // pulse the clock pin 24 times to read the data
         dat[2] = shiftIn(DOUT[board], SCLK[board], MSBFIRST);
         dat[1] = shiftIn(DOUT[board], SCLK[board], MSBFIRST);
         dat[0] = shiftIn(DOUT[board], SCLK[board], MSBFIRST);
 
         /* giving two additional clock cycle to put the DOUT pin to high after shifting the data and
-                 * get offset calibration to avoid the inhereted offset error, this method can be used also
-                 * for avoiding the DRDY/DOUT remain in the state of the last bit data but will force to high (Page 19. Figure 35)
-                 *                       _   _
-                 * Additional SCLK ... _| |_| |_
-                 */
+         * get offset calibration to avoid the inhereted offset error, this method can be used also
+         * for avoiding the DRDY/DOUT remain in the state of the last bit data but will force to high (Page 19. Figure 35)
+         *                       _   _
+         * Additional SCLK ... _| |_| |_
+         */
         if (calibrating)
         {
             digitalWrite(SCLK[board], LOW);
@@ -240,7 +240,7 @@ bool ADS1232::dataRead(uint8_t board, bool channel, bool calibrating)
         }
         else
         {
-            //push back the buffer value
+            // push back the buffer value
             for (byte i = 0; i < SAMPLE_MOV_AVERAGE - 1; i++)
                 adcBuffer[board][channel][i] = adcBuffer[board][channel][i + 1];
             index[board][channel] = SAMPLE_MOV_AVERAGE - 1;
@@ -249,7 +249,7 @@ bool ADS1232::dataRead(uint8_t board, bool channel, bool calibrating)
         //////get the filter moving average value after all buffer have a value
         if (index[board][channel] == SAMPLE_MOV_AVERAGE - 1)
         {
-            adcRead[board][channel] = 0; //Reset the previous value
+            adcRead[board][channel] = 0; // Reset the previous value
             for (byte i = 0; i < SAMPLE_MOV_AVERAGE; i++)
                 adcRead[board][channel] += static_cast<uint32_t>(adcBuffer[board][channel][i]);
             adcRead[board][channel] /= SAMPLE_MOV_AVERAGE;
@@ -315,47 +315,60 @@ float ADS1232::getWeightInUnit(byte channel)
     return (weight / dividerUnits[fdata->getMeasurementUnit()]);
 }
 
-String ADS1232::getStringWeightInUnit(uint8_t channel)
+char *ADS1232::getStringWeightInUnit(uint8_t channel)
 {
+    static char weightStr[15];
     uint8_t unit = fdata->getMeasurementUnit();
     float weight = getWeightInUnit(channel);
 
     switch (unit)
     {
     case gram:
-        return utils.floatToString(weight, 5, 2);
+        strcpy(weightStr, utils.floatToString(weight, 5, 2));
+        // return utils.floatToString(weight, 5, 2);
         // break;
     case milligram:
-        return utils.floatToString(weight, 7, 0);
+        strcpy(weightStr, utils.floatToString(weight, 7, 0));
+        // return utils.floatToString(weight, 7, 0);
         // break;
     case pound:
-        return utils.floatToString(weight, 3, 4);
+        strcpy(weightStr, utils.floatToString(weight, 3, 4));
+        // return utils.floatToString(weight, 3, 4);
         // break;
     case ounce:
-        return utils.floatToString(weight, 4, 3);
+        strcpy(weightStr, utils.floatToString(weight, 4, 3));
+        // return utils.floatToString(weight, 4, 3);
         // break;
     case troy_ounce:
-        return utils.floatToString(weight, 4, 3);
+        strcpy(weightStr, utils.floatToString(weight, 4, 3));
+        // return utils.floatToString(weight, 4, 3);
         // break;
     case carat:
-        return utils.floatToString(weight, 6, 1);
+        strcpy(weightStr, utils.floatToString(weight, 6, 1));
+        // return utils.floatToString(weight, 6, 1);
         // break;
     case kilogram:
-        return utils.floatToString(weight, 3, 4);
+        strcpy(weightStr, utils.floatToString(weight, 3, 4));
+        // return utils.floatToString(weight, 3, 4);
         // break;
     case newton:
-        return utils.floatToString(weight, 7, 0);
+        strcpy(weightStr, utils.floatToString(weight, 7, 0));
+        // return utils.floatToString(weight, 7, 0);
         // break;
     case dram:
-        return utils.floatToString(weight, 6, 1);
+        strcpy(weightStr, utils.floatToString(weight, 6, 1));
+        // return utils.floatToString(weight, 6, 1);
         // break;
     case grain:
-        return utils.floatToString(weight, 4, 3);
+        strcpy(weightStr, utils.floatToString(weight, 4, 3));
+        // return utils.floatToString(weight, 4, 3);
         // break;
     default:
-        return utils.floatToString(weight, 5, 2);
+        strcpy(weightStr, utils.floatToString(weight, 5, 2));
+        // return utils.floatToString(weight, 5, 2);
         // break;
     }
+    return weightStr;
 }
 
 float ADS1232::getWeightInGram(uint8_t channel)
@@ -366,12 +379,14 @@ float ADS1232::getWeightInGram(uint8_t channel)
     return (weight * dividerUnits[unit]);
 }
 
-String ADS1232::getStringWeightInGram(uint8_t channel)
+char *ADS1232::getStringWeightInGram(uint8_t channel)
 {
+    static char weightStr[15];
     uint8_t unit = fdata->getMeasurementUnit();
     float weight = getWeightInUnit(channel);
 
-    return utils.floatToString((weight * dividerUnits[unit]), 5, 2);
+    strcpy(weightStr, utils.floatToString((weight * dividerUnits[unit]), 5, 2));
+    return weightStr;
 }
 
 uint8_t ADS1232::getPointDoneCalibrated(uint8_t pointCalibrationStatus)
@@ -416,4 +431,4 @@ float ADS1232::weightCalculationInGram(unsigned long x1, float y1, unsigned long
     return gram;
 }
 
-ADS1232* ads = new(ADS1232);
+ADS1232 *ads = new (ADS1232);

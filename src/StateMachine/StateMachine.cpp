@@ -93,7 +93,7 @@ void StateMachine::setup(void)
             counter = 0;
         }
     }
-    Serial.end();
+    // Serial.end();
 
     rtos->updateStartProgressBar(5);
     while (flashBegin == false)
@@ -104,6 +104,9 @@ void StateMachine::setup(void)
     delay(10);
 
     rtos->updateStartProgressBar(5);
+
+    // Serial.println("Serial begin");
+    // Serial.println(String() + "debug mode " + fdata->getDebugMode() + " " + fdata->getBaudrateSerial(debugging));
     if (fdata->getDebugMode())
     {
         Serial.begin(fdata->getBaudrateSerial(debugging));
@@ -189,6 +192,7 @@ uint8_t StateMachine::homeScreen(void)
     String tempString;
     char timeString[10];
     char timeNDateString[20];
+    char buffer[20];
 
     hmi->showPage("home");
     hmi->waitForPageRespon();
@@ -197,9 +201,11 @@ uint8_t StateMachine::homeScreen(void)
     {
         enDisChannel[i] = fdata->getChannelEnDisStatus(i);
         updateButtonToggleStateToNextion(i);
-        prevWeightString[i] = "00000.00";
-        hmi->setStringToNextion((String() + "t_ch" + (i + 1) + ".txt"), prevWeightString[i]);
-        hmi->setStringToNextion(String() + "t_mu" + (i + 1) + ".txt", getStringUnit(fdata->getMeasurementUnit()));
+        strcpy(prevWeightString[i], "00000.00");
+        sprintf(buffer, "t_ch%d.txt", (i + 1));
+        hmi->setStringToNextion(buffer, prevWeightString[i]);
+        sprintf(buffer, "t_mu%d.txt", (i + 1));
+        hmi->setStringToNextion(buffer, getStringUnit(fdata->getMeasurementUnit()));
         pubSubs->setWeightString(i, prevWeightString[i]);
     }
 
@@ -287,13 +293,14 @@ uint8_t StateMachine::homeScreen(void)
 
         if (rtos->minuteTriggered)
         {
-            String newDateString = mtime.getDateStr();
+            char newDateString[15];
+            strcpy(newDateString, mtime.getDateStr().c_str());
 
-            if (oldDateString != newDateString)
+            if (strcmp(oldDateString, newDateString))
             {
                 if (fdata->getDatalogStatus(local))
                 {
-                    oldDateString = newDateString;
+                    strcpy(oldDateString, newDateString);
                     sdcard->updateCsvFileName();
                 }
             }
@@ -518,8 +525,10 @@ uint8_t StateMachine::homeScreen(void)
             // {
             for (uint8_t i = 0; i < 3; i++)
             {
+                // Serial.println(String() + "Enable " + i + " " + fdata->getDatalogStatus(i));
                 if (fdata->getDatalogStatus(i))
                 {
+                    // Serial.println(String() + "dataLoggingState " + i + " " + dataLoggingState[i]);
                     if (!dataLoggingState[i])
                     {
                         if (logger->checkSchedule(_on_, i))
@@ -643,7 +652,7 @@ uint8_t StateMachine::datalogSettings(void)
             // goto __start;
         }
     }
-    Serial.println("Exit datalog");
+    // Serial.println("Exit datalog");
     return 0;
 }
 
@@ -662,19 +671,21 @@ void StateMachine::updateButtonToggleStateToNextion(uint8_t channel)
 
 void StateMachine::updateWeightStringToNextion(void)
 {
-    String newWeightString[MAX_CHANNEL];
+    char buffer[15];
+    char newWeightString[MAX_CHANNEL][15];
 
     for (uint8_t i = 0; i < MAX_CHANNEL; i++)
     {
         if (fdata->getChannelEnDisStatus(i))
         {
-            newWeightString[i] = ads->getStringWeightInUnit(i);
-            if (prevWeightString[i] != newWeightString[i])
+            strcpy(newWeightString[i], ads->getStringWeightInUnit(i));
+            if (strcmp(prevWeightString[i], newWeightString[i]))
             {
-                hmi->setStringToNextion((String() + "t_ch" + (i + 1) + ".txt"), newWeightString[i]);
+                sprintf(buffer, "t_ch%d.txt", (i + 1));
+                hmi->setStringToNextion(buffer, newWeightString[i]);
                 // Serial.println(String() + "Updated: " + " Channel " + (i + 1) + " weight");
             }
-            prevWeightString[i] = newWeightString[i];
+            strcpy(prevWeightString[i], newWeightString[i]);
             pubSubs->setWeightString(i, prevWeightString[i]);
         }
     }
@@ -748,30 +759,32 @@ void StateMachine::updateBatteryIndicatorToNextion(uint8_t newValue, bool force)
     }
 }
 
-String StateMachine::getStringUnit(uint8_t unit)
+char *StateMachine::getStringUnit(uint8_t unit)
 {
+    static char unitStr[10] = "[g]";
+
     if (unit == gram)
-        return "[g]";
+        sprintf(unitStr, "[g]");
     else if (unit == milligram)
-        return "[mg]";
+        sprintf(unitStr, "[mg]");
     else if (unit == pound)
-        return "[lb]";
+        sprintf(unitStr, "[lb]");
     else if (unit == ounce)
-        return "[oz]";
+        sprintf(unitStr, "[oz]");
     else if (unit == troy_ounce)
-        return "[ozt]";
+        sprintf(unitStr, "[ozt]");
     else if (unit == carat)
-        return "[ct]";
+        sprintf(unitStr, "[ct]");
     else if (unit == kilogram)
-        return "[kg]";
+        sprintf(unitStr, "[kg]");
     else if (unit == newton)
-        return "[N]";
+        sprintf(unitStr, "[N]");
     else if (unit == dram)
-        return "[d]";
+        sprintf(unitStr, "[d]");
     else if (unit == grain)
-        return "[GN]";
-    else
-        return "[g]";
+        sprintf(unitStr, "[GN]");
+
+    return unitStr;
 }
 
 bool StateMachine::isWeightExceedMaximumValue(uint8_t channel, float actualWeight)
@@ -787,6 +800,7 @@ void StateMachine::updateExceedMaximumFlagToNextion(void)
 {
     // float actual[MAX_CHANNEL];
     uint32_t temp;
+    char buffer[15];
 
     // for (uint8_t i = 0; i < MAX_CHANNEL; i++)
     // {
@@ -802,18 +816,21 @@ void StateMachine::updateExceedMaximumFlagToNextion(void)
             {
                 if (isWeightExceedMaximumValue(i, ads->getWeightInUnit(i)))
                 {
-                    hmi->setIntegerToNextion((String() + "max" + (i + 1) + ".val"), 1);
+                    sprintf(buffer, "max%d.val", (i + 1));
+                    hmi->setIntegerToNextion(buffer, 1);
                     maxState[i] = true;
                 }
                 else
                 {
                     if (maxState[i] == true)
                     {
-                        hmi->getValue((String() + "max" + (i + 1) + ".val").c_str(), &temp);
+                        sprintf(buffer, "max%d.val", (i + 1));
+                        hmi->getValue(buffer, &temp);
                         // //Serial.println(String() + "max" + (i + 1) + ":" + temp);
                         if (temp == 1)
                         {
-                            hmi->setIntegerToNextion((String() + "max" + (i + 1) + ".val"), 0);
+                            // sprintf(buffer, "max%d.val", (i + 1));
+                            hmi->setIntegerToNextion(buffer, 0);
                             maxState[i] = false;
                         }
                     }
@@ -826,8 +843,10 @@ void StateMachine::updateExceedMaximumFlagToNextion(void)
 
 void StateMachine::updateSelectedUnitToNextion(uint8_t unit)
 {
+    char buffer[15];
     for (uint8_t i = 0; i < 10; i++)
     {
-        hmi->setIntegerToNextion(String() + "b" + i + ".picc", unit == i ? Measurement_List_Select : Measurement_List_Bkg);
+        sprintf(buffer, "b%d.picc", i);
+        hmi->setIntegerToNextion(buffer, ((unit == i) ? Measurement_List_Select : Measurement_List_Bkg));
     }
 }

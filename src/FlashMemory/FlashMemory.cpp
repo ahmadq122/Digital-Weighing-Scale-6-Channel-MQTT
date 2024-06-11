@@ -8,7 +8,7 @@
 bool MemoryFlash::begin(uint16_t sizeOfMemory)
 {
     // init setup flash memory to use 512 byte storage
-    Serial.begin(115200);
+    // Serial.begin(115200);
     if (EEPROM.begin(sizeOfMemory))
     {
         readAll();
@@ -19,7 +19,7 @@ bool MemoryFlash::begin(uint16_t sizeOfMemory)
     {
         // Serial.println("Initialization of flash Failed!");
     }
-    Serial.end();
+    // Serial.end();
     return false;
 }
 
@@ -47,7 +47,7 @@ bool MemoryFlash::resetDefault()
     {
         strcpy(flash.ssid, "");
         strcpy(flash.password, "");
-        strcpy(flash.keyAPI, "");
+        strcpy(flash.brokerMqtt, "");
         flash.encryptType = 0;
         flash.timeZone = 0;        // WIB
         flash.measurementUnit = 0; // GRAMS
@@ -202,26 +202,28 @@ bool MemoryFlash::setPassword(const char *newValue)
     }
     return false;
 }
-bool MemoryFlash::setKeyAPI(const char *newValue)
+bool MemoryFlash::setBrokerMqtt(const char *newValue)
 {
-    // String _apiKey = newValue;
+    // String format : "ServerAddrs:PORT"
+    char *str = const_cast<char *>(newValue);
     uint8_t size = utils.charArraySize(newValue);
 
-    if (strcmp(newValue, "") == 0)
+    // if newValue is contain ':' character
+    // if newValue is
+    if ((strchr(str, ':') != NULL) && size < MAX_BROKER_CHAR && strcmp(newValue, flash.brokerMqtt))
     {
-        // Serial.println(String() + "Data Failed to be stored!");
-        return false;
-    }
-    if (strcmp(newValue, flash.keyAPI) && size < MAX_APIKEY_CHAR) // if data is different
-    {
-        strcpy(flash.keyAPI, newValue);
+        strcpy(flash.brokerMqtt, newValue);
         storeDataToFlash();
         // Serial.println(String() + "New data set : " + newValue);
         return true;
     }
     else
     {
-        if (size >= MAX_APIKEY_CHAR)
+        if (strchr(str, ':') == NULL)
+        {
+            // Serial.println("No ':' delimiter!");
+        }
+        else if (size >= MAX_BROKER_CHAR)
         {
             // Serial.println(String() + "API Key char length " + size + " exceeds the maximum limit " + (MAX_APIKEY_CHAR - 1));
         }
@@ -232,6 +234,7 @@ bool MemoryFlash::setKeyAPI(const char *newValue)
     }
     return false;
 }
+
 bool MemoryFlash::setEncryptType(uint8_t newValue)
 {
     if (newValue != flash.encryptType)
@@ -729,9 +732,9 @@ const char *MemoryFlash::getPassword(void)
 {
     return flash.password;
 }
-const char *MemoryFlash::getKeyAPI(void)
+const char *MemoryFlash::getBrokerMqtt(void)
 {
-    return flash.keyAPI;
+    return flash.brokerMqtt;
 }
 uint8_t MemoryFlash::getEncryptType(void)
 {
@@ -900,4 +903,4 @@ uint8_t MemoryFlash::getScreenBrightness(void)
     return flash.screenBrightness;
 }
 
-MemoryFlash* fdata = new(MemoryFlash);
+MemoryFlash *fdata = new (MemoryFlash);

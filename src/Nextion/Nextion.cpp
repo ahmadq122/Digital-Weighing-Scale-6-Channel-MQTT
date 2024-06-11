@@ -17,41 +17,47 @@ void Nextion::sendCommandToNextion(const char *cmd)
   NexSerial.write(0xFF);
 }
 
-void Nextion::setStringToNextion(String variableName, String newString)
+void Nextion::setStringToNextion(const char *variableName, const char *newString)
 {
-  String cmd;
-  String buffer = String() + "\"" + newString + "\"";
-
-  cmd = variableName;
-  cmd += "=";
-  cmd += buffer;
-  sendCommandToNextion(cmd.c_str());
+  // Serial.println(String() + "setStringToNextion " + variableName + " " + newString);
+  // String cmd;
+  // String buffer = String() + "\"" + newString + "\"";
+  char cmd[50];
+  sprintf(cmd, "%s=\"%s\"", variableName, newString);
+  // Serial.println(cmd);
+  // cmd = variableName;
+  // cmd += "=";
+  // cmd += buffer;
+  sendCommandToNextion(cmd);
 }
 
-void Nextion::setIntegerToNextion(const char *variableName, uint64_t newValue)
+void Nextion::setIntegerToNextion(const char *variableName, int32_t newValue)
 {
-  String cmd;
-  char buffer[10] = {0};
+  // String cmd;
+  // char buffer[10] = {0};
+  char cmd[30];
+  sprintf(cmd, "%s=%d", variableName, newValue);
+  // Serial.println(String() + "setIntegerToNextion " + variableName + " " + newValue);
+  // Serial.println(String() + cmd);
+  // ultoa(newValue, buffer, 10);
 
-  ultoa(newValue, buffer, 10);
-
-  cmd = String() + variableName;
-  cmd += "=";
-  cmd += buffer;
-  sendCommandToNextion(cmd.c_str());
+  // cmd = String() + variableName;
+  // cmd += "=";
+  // cmd += buffer;
+  sendCommandToNextion(cmd);
 }
-void Nextion::setIntegerToNextion(String variableName, uint64_t newValue)
-{
-  String cmd;
-  char buffer[10] = {0};
+// void Nextion::setIntegerToNextion(String variableName, uint64_t newValue)
+// {
+//   String cmd;
+//   char buffer[10] = {0};
 
-  ultoa(newValue, buffer, 10);
+//   ultoa(newValue, buffer, 10);
 
-  cmd = variableName;
-  cmd += "=";
-  cmd += buffer;
-  sendCommandToNextion(cmd.c_str());
-}
+//   cmd = variableName;
+//   cmd += "=";
+//   cmd += buffer;
+//   sendCommandToNextion(cmd.c_str());
+// }
 
 bool Nextion::checkDataStringFromNextion(const char *stringData)
 {
@@ -234,24 +240,28 @@ void Nextion::flushAvailableButton(void)
   exitPageFlagCounter = 0;
 }
 
-void Nextion::setVisObjectNextion(String object, bool visValue)
+void Nextion::setVisObjectNextion(const char *object, bool visValue)
 {
-  String cmd = "vis ";
-  cmd += object;
-  cmd += ",";
-  if (visValue)
-    cmd += String() + 1;
-  else
-    cmd += String() + 0;
-  sendCommandToNextion(cmd.c_str());
+  char cmd[30];
+  sprintf(cmd, "vis %s,%d", object, (int16_t)(visValue ? 1 : 0));
+  // String cmd = "vis ";
+  // cmd += object;
+  // cmd += ",";
+  // if (visValue)
+  //   cmd += String() + 1;
+  // else
+  //   cmd += String() + 0;
+  sendCommandToNextion(cmd);
 }
 
-void Nextion::showPage(String page)
+void Nextion::showPage(const char *page)
 {
-  String cmd = String("page ");
-  cmd += page;
+  char cmd[30];
+  sprintf(cmd, "page %s", page);
+  // String cmd = String("page ");
+  // cmd += page;
   flushAvailableSerial(); // clear all the previous serial receive data and button
-  sendCommandToNextion(cmd.c_str());
+  sendCommandToNextion(cmd);
 }
 
 /*
@@ -379,17 +389,21 @@ __return:
 
 uint16_t Nextion::getValue(const char *variableName, uint32_t *number)
 {
-  String cmd = String("get ");
-  cmd += variableName;
-  sendCommandToNextion(cmd.c_str());
+  char cmd[30];
+  sprintf(cmd, "get %s", variableName);
+  // String cmd = String("get ");
+  // cmd += variableName;
+  sendCommandToNextion(cmd);
   return recvRetNumber(number);
 }
 uint16_t Nextion::getText(const char *variableName, char *buffer, uint32_t len)
 {
-  String cmd;
-  cmd += "get ";
-  cmd += variableName;
-  sendCommandToNextion(cmd.c_str());
+  char cmd[30];
+  sprintf(cmd, "get %s", variableName);
+  // String cmd;
+  // cmd += "get ";
+  // cmd += variableName;
+  sendCommandToNextion(cmd);
   return recvRetString(buffer, len);
 }
 
@@ -436,11 +450,11 @@ void Nextion::serialEvent_2(void)
   {
     if (checkDataStringFromNextion(inputString.c_str()))
     {
-      //Serial.println("Data found!");
+      // Serial.println("Data found!");
     }
     else
     {
-      //Serial.println("Failed to get the data!");
+      // Serial.println("Failed to get the data!");
     }
   }
 }
@@ -475,4 +489,4 @@ void Nextion::showSavingBarAnimation(uint16_t msDuration)
   hmi->setVisObjectNextion("saving", false);
 }
 
-Nextion* hmi = new(Nextion);
+Nextion *hmi = new (Nextion);

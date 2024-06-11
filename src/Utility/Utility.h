@@ -12,16 +12,15 @@ class Utility
 {
 public:
     uint8_t charArraySize(const char *charArray);
-    void integerToString(uint32_t number, char *buffer, uint8_t len);
-    String integerToString(uint32_t number, uint8_t len);
-    void floatToString(double Number, char *Str, unsigned char NoOfDigitsBeforePoint, unsigned char NoOfDigitsAfterPoint);
-    String floatToString(double Number, unsigned char NoOfDigitsBeforePoint, unsigned char NoOfDigitsAfterPoint);
-    // uint8_t getBatteryPercent(void);
-    // float vBatActual = 0.0;
+    void integerToString(int32_t number, char *buffer, uint8_t len);
+    char* integerToString(int32_t number, uint8_t len=0);
+    void floatToString(double number, char *str, unsigned char noOfDigitsBeforePoint, unsigned char noOfDigitsAfterPoint);
+    char* floatToString(double number, unsigned char noOfDigitsBeforePoint = 0, unsigned char noOfDigitsAfterPoint = 0);
+    char* getSplitString(char* str, char delimit, uint8_t index);
+    bool isContainingNumber(char* str);
 
 private:
     double generateMultiplier(unsigned char parameter);
-    // uint16_t adcBatteryContainer[ADCsample];
-};
+    };
 
 extern Utility utils;

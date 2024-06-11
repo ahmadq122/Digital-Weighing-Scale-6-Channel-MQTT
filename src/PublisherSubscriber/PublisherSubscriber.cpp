@@ -3,11 +3,14 @@
 #include <PubSubClient.h>
 #include "RTOS/RTOS.h"
 #include "PublisherSubscriber.h"
+#include "FlashMemory/FlashMemory.h"
+#include "Utility/Utility.h"
 
 // Add your MQTT Broker IP address, example:
-const char *mqtt_server = "192.168.43.163";
+// const char *mqtt_server = "192.168.43.163";
+char mqtt_server[21];
 // const char *mqtt_server = "test.mosquitto.org";
-uint16_t mqtt_server_port = 1883;
+// uint16_t mqtt_server_port = 1883;
 
 // Receive from nextion 192.168.43.163:1883
 
@@ -18,6 +21,9 @@ void callback(char *topic, byte *message, unsigned int length);
 
 void PublisherSubscriber::setup(void)
 {
+    strcpy(mqtt_server, utils.getSplitString(const_cast<char *>(fdata->getBrokerMqtt()), ':', 0));
+    uint16_t mqtt_server_port = atoi(utils.getSplitString(const_cast<char *>(fdata->getBrokerMqtt()), ':', 1));
+    Serial.println(String() + fdata->getBrokerMqtt() + " " + "Server " + mqtt_server + " " + mqtt_server_port);
     client.setServer(mqtt_server, mqtt_server_port);
     client.setCallback(callback);
 }
@@ -38,9 +44,13 @@ void PublisherSubscriber::routineTask(uint8_t updateChannel)
     {
         //"ch1":"00000.00"
         if (updateChannel & (0x01 << i))
+        {
             sprintf(msgJson[i], "\"%s\"", weightString[i]);
+        }
         else
+        {
             sprintf(msgJson[i], "\"%s\"", "Disabled");
+        }
         message[i] = String(msgJson[i]);
 
         if (messagePrev[i] != message[i])

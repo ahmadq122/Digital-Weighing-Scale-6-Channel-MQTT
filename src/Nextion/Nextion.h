@@ -36,10 +36,8 @@ class Nextion
 {
 public:
     void init(void);
-    // void setStringToNextion(const char *variableName, const char *newString);
-    void setStringToNextion(String variableName, String newString);
-    void setIntegerToNextion(const char *variableName, uint64_t newValue);
-    void setIntegerToNextion(String variableName, uint64_t newValue);
+    void setStringToNextion(const char* variableName, const char* newString);
+    void setIntegerToNextion(const char* variableName, int32_t newValue);
     bool checkDataStringFromNextion(const char *stringData);
 
     uint8_t getDataButton(uint8_t id);
@@ -52,8 +50,8 @@ public:
     bool getWaitingEndSignal(void);
     void flushAvailableSerial(void);
     bool checkAnyButtonPressed(uint8_t *getId);
-    void setVisObjectNextion(String object, bool visValue);
-    void showPage(String page);
+    void setVisObjectNextion(const char* object, bool visValue);
+    void showPage(const char* page);
     uint16_t getValue(const char *variableName, uint32_t *number);
     uint16_t getText(const char *variableName, char *buffer, uint32_t len);
     void flushAvailableButton(void);

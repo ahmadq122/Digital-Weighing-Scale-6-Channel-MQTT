@@ -15,7 +15,7 @@ public:
 private:
     void showNetworkProperty(bool flag);
     uint8_t calculateRSSILevel(int value);
-    bool isStoredNetwork(String networkName);
+    bool isStoredNetwork(const char* networkName);
     void showNetworkList(uint8_t noOfList);
     void showSelectedNetworkIndicator(uint8_t selected, uint8_t noOfList);
     bool previousConnectionState = false;

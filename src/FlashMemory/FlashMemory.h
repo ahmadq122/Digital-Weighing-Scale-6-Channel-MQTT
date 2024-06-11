@@ -3,9 +3,10 @@
 
 #include "Arduino.h"
 
-#define MAX_SSID_CHAR 16
-#define MAX_PASSWORD_CHAR 15
+#define MAX_SSID_CHAR 12
+#define MAX_PASSWORD_CHAR 12
 #define MAX_APIKEY_CHAR 18
+#define MAX_BROKER_CHAR 28 //"000.000.000.000:0000"
 
 #define MEMORY_SIZE 512
 
@@ -55,10 +56,10 @@ public:
     bool begin(uint16_t sizeOfMemory);
     void readAll();
 
-    //setting data flash
+    // setting data flash
     bool setSSID(const char *newValue);
     bool setPassword(const char *newValue);
-    bool setKeyAPI(const char *newValue);
+    bool setBrokerMqtt(const char *newValue);
     bool setEncryptType(uint8_t newValue);
     bool setTimezone(uint8_t newValue);
     bool setMeasurementUnit(uint8_t newValue);
@@ -85,10 +86,10 @@ public:
     bool setMaximumBattery(float newValue);
     bool setMinimumBattery(float newValue);
 
-    //reading data flash
+    // reading data flash
     const char *getSSID(void);
     const char *getPassword(void);
-    const char *getKeyAPI(void);
+    const char *getBrokerMqtt(void);
     uint8_t getEncryptType(void);
     uint8_t getTimezone(void);
     uint8_t getMeasurementUnit(void);
@@ -125,12 +126,13 @@ public:
     // {
     //     char ssid[MAX_SSID_CHAR];
     //     char password[MAX_PASSWORD_CHAR];
-    //     char keyAPI[MAX_APIKEY_CHAR];
+    //     // char keyAPI[MAX_APIKEY_CHAR];
+    //     char brokerMqtt[MAX_BROKER_CHAR];
     //     uint8_t encryptType;
     //     uint8_t timeZone = 0;
     //     uint8_t measurementUnit = 0;
     //     uint8_t channelEnDisStatus = B00111111;
-    //     uint8_t generalStatus = B00000001; //na, buzzer, spped rate, enable web log, enable serial log, enable card log, networkEnable, debugMode
+    //     uint8_t generalStatus = B00000001; // na, buzzer, spped rate, enable web log, enable serial log, enable card log, networkEnable, debugMode
     //     // uint8_t fieldChannel[MAX_CHANNEL];
     //     uint8_t pointCalibrationStatus[MAX_CHANNEL];
     //     // uint16_t batteryCapacity = 1000;
@@ -144,8 +146,8 @@ public:
     //     uint8_t enableDateScheduler = 0;
     //     uint8_t dimScreenTimer = 0;
     //     uint8_t screenBrightness = 100;
-    //     uint16_t batteryMaximum = 0x0800 | 0x0004;
-    //     uint16_t batteryMinimum = 0x0700 | 0x0000;
+    //     uint16_t batteryMaximum = 0x0800;
+    //     uint16_t batteryMinimum = 0x0700;
     // } flash;
 
 private:
@@ -153,12 +155,13 @@ private:
     {
         char ssid[MAX_SSID_CHAR];
         char password[MAX_PASSWORD_CHAR];
-        char keyAPI[MAX_APIKEY_CHAR];
+        // char keyAPI[MAX_APIKEY_CHAR];
+        char brokerMqtt[MAX_BROKER_CHAR];
         uint8_t encryptType;
         uint8_t timeZone = 0;
         uint8_t measurementUnit = 0;
         uint8_t channelEnDisStatus = B00111111;
-        uint8_t generalStatus = B00000001; //na, buzzer, spped rate, enable web log, enable serial log, enable card log, networkEnable, debugMode
+        uint8_t generalStatus = B00000001; // na, buzzer, spped rate, enable web log, enable serial log, enable card log, networkEnable, debugMode
         // uint8_t fieldChannel[MAX_CHANNEL];
         uint8_t pointCalibrationStatus[MAX_CHANNEL];
         // uint16_t batteryCapacity = 1000;
@@ -193,6 +196,6 @@ private:
     bool storeDataToFlash(void);
 };
 
-extern MemoryFlash* fdata;
+extern MemoryFlash *fdata;
 
 #endif

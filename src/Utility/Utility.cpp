@@ -15,99 +15,185 @@ uint8_t Utility::charArraySize(const char *charArray)
     return 0;
 }
 
-void Utility::integerToString(uint32_t number, char *buffer, uint8_t len)
+void Utility::integerToString(int32_t number, char *buffer, uint8_t len)
 {
-    String tempStr = String() + number;
-    String numbStr;
-    char charFirstZero[10];
-    uint8_t a = 0, b = 0;
-
-    if (tempStr.length() < len)
-    {
-        a = len - tempStr.length();
-        while (a)
-        {
-            charFirstZero[b] = '0';
-            a--;
-            b++;
-        }
-        charFirstZero[b] = '\0';
-        numbStr = String() + charFirstZero;
-        numbStr += tempStr;
-    }
-    else
-    {
-        numbStr = tempStr;
-    }
-    strcpy(buffer, numbStr.c_str());
+    if (len == 1)
+        sprintf(buffer, "%01d", number);
+    else if (len == 2)
+        sprintf(buffer, "%02d", number);
+    else if (len == 3)
+        sprintf(buffer, "%03d", number);
+    else if (len == 4)
+        sprintf(buffer, "%04d", number);
+    else if (len == 5)
+        sprintf(buffer, "%05d", number);
+    else if (len == 6)
+        sprintf(buffer, "%06d", number);
+    else if (len == 7)
+        sprintf(buffer, "%07d", number);
+    else if (len == 8)
+        sprintf(buffer, "%08d", number);
+    else if (len == 9)
+        sprintf(buffer, "%09d", number);
+    else if (len == 10)
+        sprintf(buffer, "%010d", number);
 }
 
-String Utility::integerToString(uint32_t number, uint8_t len)
+char *Utility::integerToString(int32_t number, uint8_t len)
 {
-    String tempStr = String() + number;
-    String numbStr;
-    char charFirstZero[10];
-    uint8_t a = 0, b = 0;
+    static char buffer[20];
 
-    if (tempStr.length() < len)
-    {
-        a = len - tempStr.length();
-        while (a)
-        {
-            charFirstZero[b] = '0';
-            a--;
-            b++;
-        }
-        charFirstZero[b] = '\0';
-        numbStr = String() + charFirstZero;
-        numbStr += tempStr;
-    }
-    else
-    {
-        numbStr = tempStr;
-    }
-    return numbStr;
+    strcpy(buffer, "");
+    if (len == 0)
+        sprintf(buffer, "%d", number);
+    else if (len == 1)
+        sprintf(buffer, "%01d", number);
+    else if (len == 2)
+        sprintf(buffer, "%02d", number);
+    else if (len == 3)
+        sprintf(buffer, "%03d", number);
+    else if (len == 4)
+        sprintf(buffer, "%04d", number);
+    else if (len == 5)
+        sprintf(buffer, "%05d", number);
+    else if (len == 6)
+        sprintf(buffer, "%06d", number);
+    else if (len == 7)
+        sprintf(buffer, "%07d", number);
+    else if (len == 8)
+        sprintf(buffer, "%08d", number);
+    else if (len == 9)
+        sprintf(buffer, "%09d", number);
+    else if (len == 10)
+        sprintf(buffer, "%010d", number);
+
+    return buffer;
 }
 
-void Utility::floatToString(double Number, char *Str, unsigned char NoOfDigitsBeforePoint, unsigned char NoOfDigitsAfterPoint)
+void Utility::floatToString(double number, char *str, unsigned char noOfDigitsBeforePoint, unsigned char noOfDigitsAfterPoint)
 {
-    NoOfDigitsAfterPoint = constrain(NoOfDigitsAfterPoint, 0, 5);
-    unsigned long temp1 = static_cast<unsigned long>(Number);
-    double temp2 = (Number - static_cast<double>(temp1)) * generateMultiplier(NoOfDigitsAfterPoint);
+    noOfDigitsAfterPoint = constrain(noOfDigitsAfterPoint, 0, 5);
+    unsigned long temp1 = static_cast<unsigned long>(number);
+    double temp2 = (number - static_cast<double>(temp1)) * generateMultiplier(noOfDigitsAfterPoint);
     unsigned long temp3 = static_cast<unsigned long>(temp2);
 
-    integerToString(temp1, Str, NoOfDigitsBeforePoint);
+    integerToString(temp1, str, noOfDigitsBeforePoint);
 
-    if (NoOfDigitsAfterPoint != 0)
+    if (noOfDigitsAfterPoint != 0)
     {
-        Str[NoOfDigitsBeforePoint] = '.';
-        integerToString(temp3, &Str[NoOfDigitsBeforePoint + 1], NoOfDigitsAfterPoint);
-        Str[NoOfDigitsBeforePoint + 1 + NoOfDigitsAfterPoint] = '\0';
+        str[noOfDigitsBeforePoint] = '.';
+        integerToString(temp3, &str[noOfDigitsBeforePoint + 1], noOfDigitsAfterPoint);
+        str[noOfDigitsBeforePoint + 1 + noOfDigitsAfterPoint] = '\0';
     }
     else
-        Str[NoOfDigitsBeforePoint] = '\0';
+        str[noOfDigitsBeforePoint] = '\0';
 }
 
-String Utility::floatToString(double Number, unsigned char NoOfDigitsBeforePoint, unsigned char NoOfDigitsAfterPoint)
+char *Utility::floatToString(double number, unsigned char noOfDigitsBeforePoint, unsigned char noOfDigitsAfterPoint)
 {
-    char Str[NoOfDigitsBeforePoint + NoOfDigitsAfterPoint + 2];
-    unsigned long temp1 = static_cast<unsigned long>(Number);
-    double temp2 = (Number - static_cast<double>(temp1)) * generateMultiplier(NoOfDigitsAfterPoint);
+    static char str[20];
+    unsigned long temp1 = static_cast<unsigned long>(number);
+    double temp2 = (number - static_cast<double>(temp1)) * generateMultiplier(noOfDigitsAfterPoint);
     unsigned long temp3 = static_cast<unsigned long>(temp2);
 
-    NoOfDigitsAfterPoint = constrain(NoOfDigitsAfterPoint, 0, 5);
+    noOfDigitsAfterPoint = constrain(noOfDigitsAfterPoint, 0, 5);
 
-    integerToString(temp1, Str, NoOfDigitsBeforePoint);
+    integerToString(temp1, str, noOfDigitsBeforePoint);
 
-    if (NoOfDigitsAfterPoint != 0)
+    if (noOfDigitsAfterPoint != 0)
     {
-        Str[NoOfDigitsBeforePoint] = '.';
-        integerToString(temp3, &Str[NoOfDigitsBeforePoint + 1], NoOfDigitsAfterPoint);
-        Str[NoOfDigitsBeforePoint + 1 + NoOfDigitsAfterPoint] = '\0';
+        str[noOfDigitsBeforePoint] = '.';
+        integerToString(temp3, &str[noOfDigitsBeforePoint + 1], noOfDigitsAfterPoint);
+        str[noOfDigitsBeforePoint + 1 + noOfDigitsAfterPoint] = '\0';
     }
     else
-        Str[NoOfDigitsBeforePoint] = '\0';
-    return Str;
+        str[noOfDigitsBeforePoint] = '\0';
+
+    if (!noOfDigitsBeforePoint && !noOfDigitsAfterPoint)
+        sprintf(str, "%f", number);
+
+    return str;
+}
+
+char *Utility::getSplitString(char *str, char delimit, uint8_t index)
+{
+    static char tokenTemp[50];
+    bool retState = false;
+    if (strchr(str, delimit) != NULL)
+    {
+        // Serial.printf("%c is available in %s!\n", delimit, str);
+        char strTemp[100];
+        uint8_t i = 0;
+        uint8_t availableLength = 0;
+        uint8_t curIndex = 0;
+        uint8_t strLength = charArraySize(str);
+
+        // Serial.println(str);
+        sprintf(strTemp, "%s%c", str, delimit);
+        // Serial.println(strTemp);
+
+        // Checking the max length available
+        while (strTemp[i] != '\0')
+        {
+            // Serial.printf("%c\n", str[i]);
+            if (strTemp[i] == delimit)
+            {
+                availableLength++;
+            }
+            i++;
+        }
+        // Serial.printf("length:%d\n", availableLength);
+        // exit if out of range
+        if (index >= availableLength)
+        {
+            // Serial.println("Index of splited str requested is out of range!");
+            strcpy(tokenTemp, "N/A");
+            retState = true;
+        }
+        i = 0;
+        int8_t j = 0;
+        while (strTemp[i] != '\0' && !retState)
+        {
+            // Serial.printf("%c\n", str[i]);
+            if (strTemp[i] == delimit)
+            {
+                // Serial.printf("%d: %s\n", curIndex, tokenTemp);
+                if (index == curIndex)
+                {
+                    // Serial.printf("j: %d\n", j);
+                    tokenTemp[j] = '\0';
+                    // Serial.printf("String return: %s\n", tokenTemp);
+                    break;
+                }
+                strcpy(tokenTemp, "");
+                j = 0;
+                i++;
+                curIndex++;
+            }
+            tokenTemp[j] = strTemp[i];
+            // Serial.printf("i: %d, j: %d, c: %c\n", i, j, tokenTemp[j]);
+            i++;
+            j++;
+        }
+    }
+    else
+    {
+        strcpy(tokenTemp, "N/A");
+        // Serial.printf("%c is not available in %s!\n", delimit, str);
+    }
+    return tokenTemp;
+}
+
+bool Utility::isContainingNumber(char *str)
+{
+    uint8_t i = 0;
+    while (str[i] != '\0')
+    {
+        if (str[i] < '0' || str[i] > '9')
+            return false;
+        i++;
+    }
+    return true;
 }
 
 double Utility::generateMultiplier(unsigned char parameter)
@@ -126,73 +212,5 @@ double Utility::generateMultiplier(unsigned char parameter)
     else
         return 0;
 }
-
-// uint8_t Utility::getBatteryPercent(void)
-// {
-//     float adcBattery = 0;
-//     float percent = 0.0;
-//     float voltageDivider = 0.0;
-//     float voltageActual = 0.0;
-//     float attenuation = 0.0;
-//     static uint8_t index = 0;
-//     float min = fdata->getMinimumBattery();
-//     float max = fdata->getMaximumBattery();
-
-//     attenuation = 0.3188; //(Resistor_Two_VoltDiv / (Resistor_One_VoltDiv + Resistor_Two_VoltDiv));
-
-//     // USE MOVING AVERAGE TERM
-
-//     if (index < ADCsample)
-//     {
-//         adcBatteryContainer[index] = analogRead(Pin_VBat_Sense);
-//         delay(10);
-//         index++;
-//         return 0;
-//     }
-//     else
-//     {
-//         if (rtos->secondTriggered[6])
-//         {
-//             for (uint8_t i = 0; i < (ADCsample - 1); i++)
-//             {
-//                 adcBatteryContainer[i] = adcBatteryContainer[i + 1];
-//             }
-//             adcBatteryContainer[ADCsample - 1] = analogRead(Pin_VBat_Sense);
-//             delay(10);
-//             for (uint8_t i = 0; i < ADCsample; i++)
-//             {
-//                 adcBattery += adcBatteryContainer[i];
-//             }
-
-//             adcBattery /= ADCsample;
-//             voltageDivider = (adcBattery / 4095.0) * ESP_Analog_Voltage_Refrence;
-
-//             if (adcBattery > 10)
-//             {
-//                 if (fdata->getDebugMode())
-//                     voltageDivider += 0.115; // correction
-//                 else
-//                     voltageDivider += 0.175; // correction
-//             }
-
-//             voltageActual = voltageDivider / attenuation;
-//             vBatActual = voltageActual;
-
-//             percent = ((constrain((voltageActual - min), 0.0, (max - min))) / (max - min)) * 100.0;
-
-//             // Serial.println(String() + "---------------------------");
-//             // Serial.println(String() + "Attenuation : " + attenuation);
-//             // Serial.println(String() + "Voltage ADC : " + adcBattery);
-//             // Serial.println(String() + "Voltage Actual : " + voltageActual + "V");
-//             // Serial.println(String() + "Voltage Divider : " + voltageDivider + "V");
-//             // Serial.println(String() + "Battey Percent : " + percent + "%");
-//             // Serial.println(String() + "---------------------------");
-//             rtos->secondTriggered[6] = false;
-
-//             return (uint8_t)percent;
-//         }
-//     }
-//     return 0xFF;
-// }
 
 Utility utils;

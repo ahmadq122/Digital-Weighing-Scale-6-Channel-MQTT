@@ -155,7 +155,7 @@ start:
 
                         // hmi->showPage("stb");
                         // hmi->waitForPageRespon();
-                       
+
                         rtos->powerOffFlag = 2;
                         while (rtos->powerOffFlag)
                         {
@@ -274,6 +274,7 @@ void Settings::brightness(void)
 {
     bool button[8];
     bool popup = false;
+    char buffer[10];
 
     hmi->showPage("bright");
     hmi->waitForPageRespon();
@@ -284,7 +285,8 @@ void Settings::brightness(void)
     }
     else
     {
-        hmi->setStringToNextion("b0.txt", String() + fdata->getDimScreenTimer());
+        sprintf(buffer, "%d", fdata->getDimScreenTimer());
+        hmi->setStringToNextion("b0.txt", buffer);
         hmi->setVisObjectNextion("q1", true);
     }
     // Serial.printf("bright %d%\n", fdata->getScreenBrightness());
@@ -305,7 +307,8 @@ void Settings::brightness(void)
                     hmi->setVisObjectNextion("q2", popup);
                     for (uint8_t a = 1; a <= 6; a++)
                     {
-                        hmi->setVisObjectNextion(String() + "b" + a, popup);
+                        sprintf(buffer, "b%d", a);
+                        hmi->setVisObjectNextion(buffer, popup);
                     }
                     break;
 
@@ -323,7 +326,8 @@ void Settings::brightness(void)
                     hmi->setVisObjectNextion("q2", false);
                     for (uint8_t a = 1; a <= 6; a++)
                     {
-                        hmi->setVisObjectNextion(String() + "b" + a, false);
+                        sprintf(buffer, "b%d", a);
+                        hmi->setVisObjectNextion(buffer, false);
                     }
                     if (fdata->getDimScreenTimer() == 0)
                     {
@@ -332,7 +336,8 @@ void Settings::brightness(void)
                     }
                     else
                     {
-                        hmi->setStringToNextion("b0.txt", String() + fdata->getDimScreenTimer());
+                        sprintf(buffer, "%d", fdata->getDimScreenTimer());
+                        hmi->setStringToNextion("b0.txt", buffer);
                         hmi->setVisObjectNextion("q1", true);
                     }
 
@@ -346,12 +351,14 @@ void Settings::brightness(void)
 
 void Settings::updateLimitValueToNextion(void)
 {
+    char buffer[20];
     for (uint8_t i = 0; i < 6; i++)
     {
-        hmi->setStringToNextion(String() + "b" + i + ".txt", String() + fdata->getGramMaximum(i));
+        sprintf(buffer, "b%d.txt", i);
+        hmi->setStringToNextion(buffer, String(fdata->getGramMaximum(i)).c_str());
     }
-    hmi->setStringToNextion(String() + "b6.txt", String() + fdata->getMinimumBattery());
-    hmi->setStringToNextion(String() + "b7.txt", String() + fdata->getMaximumBattery());
+    hmi->setStringToNextion("b6.txt", String(fdata->getMinimumBattery()).c_str());
+    hmi->setStringToNextion("b7.txt", String(fdata->getMaximumBattery()).c_str());
 }
 void Settings::setLimit(void)
 {
@@ -362,6 +369,7 @@ void Settings::setLimit(void)
     uint8_t batteryPercent = 0;
     uint8_t batteryPercentNew = 0;
     float batteryVoltage = 0.0;
+    char buffer[20];
 
 start:
     button1[0] = false;
@@ -377,13 +385,15 @@ start:
         batteryPercentNew = rtos->batteryPercent;
         if (batteryPercent != batteryPercentNew && batteryPercentNew != 0xFF)
         {
-            hmi->setStringToNextion("t1.txt", String() + utils.integerToString(batteryPercentNew, 3) + "%");
+            sprintf(buffer, "%s%", utils.integerToString(batteryPercentNew, 3));
+            hmi->setStringToNextion("t1.txt", buffer);
             hmi->setIntegerToNextion("j0.val", batteryPercentNew);
             batteryPercent = batteryPercentNew;
         }
         if (batteryVoltage != rtos->vBatActual)
         {
-            hmi->setStringToNextion("t0.txt", String() + rtos->vBatActual + "V");
+            sprintf(buffer, "%fV", rtos->vBatActual);
+            hmi->setStringToNextion("t0.txt", buffer);
             batteryVoltage = rtos->vBatActual;
         }
 
@@ -400,13 +410,22 @@ start:
                 hmi->showPage("numpad");
                 hmi->waitForPageRespon();
                 if (i <= 5)
-                    hmi->setStringToNextion("num_string.txt", String() + fdata->getGramMaximum(i));
+                {
+                    sprintf(buffer, "%f", fdata->getGramMaximum(i));
+                    hmi->setStringToNextion("num_string.txt", buffer);
+                }
                 else
                 {
                     if (i == 6)
-                        hmi->setStringToNextion("num_string.txt", String() + fdata->getMinimumBattery());
+                    {
+                        sprintf(buffer, "%f", fdata->getMinimumBattery());
+                        hmi->setStringToNextion("num_string.txt", buffer);
+                    }
                     else if (i == 7)
-                        hmi->setStringToNextion("num_string.txt", String() + fdata->getMaximumBattery());
+                    {
+                        sprintf(buffer, "%f", fdata->getMaximumBattery());
+                        hmi->setStringToNextion("num_string.txt", buffer);
+                    }
                 }
                 hmi->flushAvailableButton();
                 while (!button1[0] && !button1[1])
@@ -447,6 +466,7 @@ start:
 void Settings::timeAndDate(void)
 {
     bool button[12];
+    char buffer[20];
     int8_t data[6]; // hour,minute,second,date,month,year
     mtime.getRtcTime(&data[0], &data[1], &data[2]);
     mtime.getRtcDate(&data[3], &data[4], &data[5]);
@@ -458,7 +478,8 @@ void Settings::timeAndDate(void)
     {
         if (i == 2)
             continue;
-        hmi->setStringToNextion(String() + "t" + i + ".txt", utils.integerToString(data[i], 2));
+        sprintf(buffer, "t%d.txt", i);
+        hmi->setStringToNextion(buffer, utils.integerToString(data[i], 2));
     }
 
     while (true)
@@ -563,23 +584,33 @@ void Settings::timeAndDate(void)
 
 void Settings::showBaudrateOption(bool type, bool show)
 {
+    char buffer[10];
     if (type == debugging)
         hmi->setVisObjectNextion("q1", show);
     for (uint i = 0; i < 10; i++)
-        hmi->setVisObjectNextion(String() + "b" + i, show);
+    {
+        sprintf(buffer, "b%d", i);
+        hmi->setVisObjectNextion(buffer, show);
+    }
 }
 
 void Settings::updateSelectedBaudrateToNextion(bool type, uint8_t selected)
 {
+    char buffer[20];
     fdata->setBaudrateSerial(type, selected);
     // Serial.println(String() + "Baudrate set: " + fdata->getBaudrateSerial(type));
 
     for (uint8_t i = 0; i < 10; i++)
     {
+        sprintf(buffer, "b%d.picc", i);
         if (i == selected)
-            hmi->setIntegerToNextion(String() + "b" + i + ".picc", Debug_Baud_Select);
+        {
+            hmi->setIntegerToNextion(buffer, Debug_Baud_Select);
+        }
         else
-            hmi->setIntegerToNextion(String() + "b" + i + ".picc", Debug_Normal_Btn);
+        {
+            hmi->setIntegerToNextion(buffer, Debug_Normal_Btn);
+        }
     }
 }
 void Settings::debugMenu(void)
@@ -684,6 +715,7 @@ start:
 void Settings::updateSetpointToNextion(uint8_t channel)
 {
     bool valid[7];
+    char buffer[20];
     uint8_t i = 0;
 
     for (i = 0; i < 7; i++)
@@ -701,11 +733,17 @@ void Settings::updateSetpointToNextion(uint8_t channel)
 
     for (i = 0; i < 7; i++)
     {
-        hmi->setStringToNextion(String() + "b" + i + ".txt", String() + fdata->getGramCalibrationPoint(channel, i));
+        sprintf(buffer, "b%d.txt", i);
+        hmi->setStringToNextion(buffer, utils.floatToString(fdata->getGramCalibrationPoint(channel, i)));
+        sprintf(buffer, "b%d.pco", i);
         if (valid[i])
-            hmi->setIntegerToNextion(String() + "b" + i + ".pco", 0); // set font color to red
+        {
+            hmi->setIntegerToNextion(buffer, 0); // set font color to red
+        }
         else
-            hmi->setIntegerToNextion(String() + "b" + i + ".pco", 63488); // set font color to black
+        {
+            hmi->setIntegerToNextion(buffer, 63488); // set font color to black
+        }
     }
 }
 
@@ -716,13 +754,14 @@ void Settings::setPoint(void)
     String newValueStr;
     float newValue = 0;
     uint8_t channel = 1;
+    char buffer[20];
 
 start:
     button1[0] = false;
     button1[1] = false;
     hmi->showPage("setpoint");
     hmi->waitForPageRespon();
-    hmi->setStringToNextion("t0.txt", String() + channel);
+    hmi->setStringToNextion("t0.txt", utils.integerToString(channel));
     updateSetpointToNextion(channel - 1);
 
     while (true)
@@ -748,9 +787,10 @@ start:
                         channel = 1;
                     break;
                 default:
+                    sprintf(buffer, "%f", fdata->getGramCalibrationPoint(channel - 1, i));
                     hmi->showPage("numpad");
                     hmi->waitForPageRespon();
-                    hmi->setStringToNextion("num_string.txt", String() + fdata->getGramCalibrationPoint(channel - 1, i));
+                    hmi->setStringToNextion("num_string.txt", buffer);
                     hmi->flushAvailableButton();
                     while (!button1[0] && !button1[1])
                     {
@@ -779,7 +819,7 @@ void Settings::updateAdcValueString(uint8_t channel, uint32_t *oldValue)
         if (*oldValue != ads->adcRead[ads1][0])
         {
             *oldValue = ads->adcRead[ads1][0];
-            hmi->setStringToNextion("t0.txt", ads->adcReadString[ads1][0]);
+            hmi->setStringToNextion("t0.txt", ads->adcReadString[ads1][0].c_str());
         }
     }
     else if (channel == Channel2)
@@ -787,7 +827,7 @@ void Settings::updateAdcValueString(uint8_t channel, uint32_t *oldValue)
         if (*oldValue != ads->adcRead[ads1][1])
         {
             *oldValue = ads->adcRead[ads1][1];
-            hmi->setStringToNextion("t1.txt", ads->adcReadString[ads1][1]);
+            hmi->setStringToNextion("t1.txt", ads->adcReadString[ads1][1].c_str());
         }
     }
     else if (channel == Channel3)
@@ -795,7 +835,7 @@ void Settings::updateAdcValueString(uint8_t channel, uint32_t *oldValue)
         if (*oldValue != ads->adcRead[ads2][0])
         {
             *oldValue = ads->adcRead[ads2][0];
-            hmi->setStringToNextion("t2.txt", ads->adcReadString[ads2][0]);
+            hmi->setStringToNextion("t2.txt", ads->adcReadString[ads2][0].c_str());
         }
     }
     else if (channel == Channel4)
@@ -803,7 +843,7 @@ void Settings::updateAdcValueString(uint8_t channel, uint32_t *oldValue)
         if (*oldValue != ads->adcRead[ads2][1])
         {
             *oldValue = ads->adcRead[ads2][1];
-            hmi->setStringToNextion("t3.txt", ads->adcReadString[ads2][1]);
+            hmi->setStringToNextion("t3.txt", ads->adcReadString[ads2][1].c_str());
         }
     }
     else if (channel == Channel5)
@@ -811,7 +851,7 @@ void Settings::updateAdcValueString(uint8_t channel, uint32_t *oldValue)
         if (*oldValue != ads->adcRead[ads3][0])
         {
             *oldValue = ads->adcRead[ads3][0];
-            hmi->setStringToNextion("t4.txt", ads->adcReadString[ads3][0]);
+            hmi->setStringToNextion("t4.txt", ads->adcReadString[ads3][0].c_str());
         }
     }
     else if (channel == Channel6)
@@ -819,7 +859,7 @@ void Settings::updateAdcValueString(uint8_t channel, uint32_t *oldValue)
         if (*oldValue != ads->adcRead[ads3][1])
         {
             *oldValue = ads->adcRead[ads3][1];
-            hmi->setStringToNextion("t5.txt", ads->adcReadString[ads3][1]);
+            hmi->setStringToNextion("t5.txt", ads->adcReadString[ads3][1].c_str());
         }
     }
 }
@@ -827,7 +867,7 @@ void Settings::updateAdcValueString(uint8_t channel, uint32_t *oldValue)
 void Settings::resetCalibration(void)
 {
     bool button[8];
-    String str = "CH1";
+    char str[10] = "CH1";
 
     hmi->showPage("rstcal");
     hmi->waitForPageRespon();
@@ -847,22 +887,22 @@ void Settings::resetCalibration(void)
                 switch (i)
                 {
                 case 0:
-                    str = "CH1";
+                    strcpy(str, "CH1");
                     break;
                 case 1:
-                    str = "CH2";
+                    strcpy(str, "CH2");
                     break;
                 case 2:
-                    str = "CH3";
+                    strcpy(str, "CH3");
                     break;
                 case 3:
-                    str = "CH4";
+                    strcpy(str, "CH4");
                     break;
                 case 4:
-                    str = "CH5";
+                    strcpy(str, "CH5");
                     break;
                 case 5:
-                    str = "CH6";
+                    strcpy(str, "CH6");
                     break;
                 default:
                     break;
@@ -909,11 +949,11 @@ void Settings::updatePointCalibParameter(uint8_t channel, uint8_t point)
 {
     if (point > 0)
     {
-        hmi->setStringToNextion("t0.txt", String() + fdata->getGramCalibrationPoint(channel, point - 1));
+        hmi->setStringToNextion("t0.txt", utils.floatToString(fdata->getGramCalibrationPoint(channel, point - 1)));
     }
     else
     {
-        hmi->setStringToNextion("t0.txt", String() + static_cast<float>(0));
+        hmi->setStringToNextion("t0.txt", utils.floatToString(static_cast<float>(0)));
     }
     if (fdata->getPointCalibrationStatus(channel, point))
     {
@@ -934,8 +974,8 @@ void Settings::pointCalibration(void)
     int8_t pointState = 0;
     uint8_t settingState = 0;
     uint8_t temp = 0;
-    String prevStr = "";
-    String newStr = "";
+    char prevStr[20];
+    char newStr[20];
     uint32_t temp_adc = 0;
 
     hmi->showPage("pointcal");
@@ -953,7 +993,8 @@ void Settings::pointCalibration(void)
                 temp = channelState == 1 ? 0 : channelState == 3 ? 1
                                            : channelState == 5   ? 2
                                                                  : 0;
-                newStr = ads->adcReadString[temp][1];
+                strcpy(newStr, ads->adcReadString[temp][1].c_str());
+                // newStr = ads->adcReadString[temp][1];
                 temp_adc = ads->adcRead[temp][1];
             }
             else
@@ -961,13 +1002,14 @@ void Settings::pointCalibration(void)
                 temp = channelState == 0 ? 0 : channelState == 2 ? 1
                                            : channelState == 4   ? 2
                                                                  : 0;
-                newStr = ads->adcReadString[temp][0];
+                strcpy(newStr, ads->adcReadString[temp][0].c_str());
+                // newStr = ads->adcReadString[temp][0];
                 temp_adc = ads->adcRead[temp][0];
             }
-            if (newStr != prevStr)
+            if (strcmp(newStr, prevStr))
             {
                 hmi->setStringToNextion("t5.txt", newStr);
-                prevStr = newStr;
+                strcpy(prevStr, newStr);
             }
         }
 
@@ -981,28 +1023,28 @@ void Settings::pointCalibration(void)
                 case 0:
                     if (++channelState >= (MAX_CHANNEL - 1))
                         channelState = (MAX_CHANNEL - 1);
-                    hmi->setStringToNextion("t1.txt", String() + (channelState + 1));
+                    hmi->setStringToNextion("t1.txt", utils.integerToString(channelState + 1));
                     // Serial.println(String() + "Channel " + (channelState + 1) + " selected");
                     settingState = 0;
                     break;
                 case 1:
                     if (--channelState <= 0)
                         channelState = 0;
-                    hmi->setStringToNextion("t1.txt", String() + (channelState + 1));
+                    hmi->setStringToNextion("t1.txt", utils.integerToString(channelState + 1));
                     // Serial.println(String() + "Channel " + (channelState + 1) + " selected");
                     settingState = 0;
                     break;
                 case 2:
                     if (++pointState >= (MAX_POINT_CAL - 1))
                         pointState = (MAX_POINT_CAL - 1);
-                    hmi->setStringToNextion("t2.txt", String() + (pointState + 1));
+                    hmi->setStringToNextion("t2.txt", utils.integerToString(pointState + 1));
                     // Serial.println(String() + "Point " + (pointState + 1) + " selected");
                     settingState = 0;
                     break;
                 case 3:
                     if (--pointState <= 0)
                         pointState = 0;
-                    hmi->setStringToNextion("t2.txt", String() + (pointState + 1));
+                    hmi->setStringToNextion("t2.txt", utils.integerToString(pointState + 1));
                     // Serial.println(String() + "Point " + (pointState + 1) + " selected");
                     settingState = 0;
                     break;

@@ -7476,7 +7476,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "27k"
+		(property "Value" "100k"
 			(at 76.2 29.21 90)
 			(effects
 				(font
@@ -7545,7 +7545,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "12k"
 			(at 76.2 40.005 90)
 			(effects
 				(font
@@ -9404,7 +9404,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "47k"
+		(property "Value" "10k"
 			(at 93.98 40.005 90)
 			(effects
 				(font
@@ -9685,7 +9685,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "47k"
+		(property "Value" "10k"
 			(at 93.98 29.21 90)
 			(effects
 				(font

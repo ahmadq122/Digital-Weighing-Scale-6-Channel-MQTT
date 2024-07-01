@@ -98,11 +98,11 @@
 			(psnegative no)
 			(psa4output no)
 			(plotreference yes)
-			(plotvalue yes)
+			(plotvalue no)
 			(plotfptext yes)
 			(plotinvisibletext no)
 			(sketchpadsonfab no)
-			(subtractmaskfromsilk no)
+			(subtractmaskfromsilk yes)
 			(outputformat 1)
 			(mirror no)
 			(drillshape 0)
@@ -5900,7 +5900,7 @@
 			(at 0 -4.2 0)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "5952674d-3484-4a9e-aaa2-5f919a81f83b")
+			(uuid "85f31777-e46e-4f72-9051-b0cd37420058")
 			(effects
 				(font
 					(size 1 1)
@@ -5911,7 +5911,7 @@
 		(property "Value" "MountingHole_3.2mm_M3"
 			(at 0 4.2 0)
 			(layer "F.Fab")
-			(uuid "3917e3fb-d4eb-47e5-aa18-f1f49082df5d")
+			(uuid "c9f2ac39-de2f-438f-8d66-4563d5bdd383")
 			(effects
 				(font
 					(size 1 1)
@@ -5965,7 +5965,7 @@
 			)
 			(fill none)
 			(layer "Cmts.User")
-			(uuid "e4ab6c09-f49b-4fa2-9b3d-34d6c01a914f")
+			(uuid "7c080fc5-5da8-49c6-b35b-1b6f711f3cef")
 		)
 		(fp_circle
 			(center 0 0)
@@ -5976,12 +5976,12 @@
 			)
 			(fill none)
 			(layer "F.CrtYd")
-			(uuid "4c9028b7-d7ad-487e-b267-f2fac998a006")
+			(uuid "33bafbd8-f3ac-4e05-9e1f-8f69f9257515")
 		)
 		(fp_text user "${REFERENCE}"
 			(at 0 0 0)
 			(layer "F.Fab")
-			(uuid "29f10ae7-795f-40ad-b5b7-b785a77323b9")
+			(uuid "7f26752c-1917-4c02-9e4b-90768fa428ae")
 			(effects
 				(font
 					(size 1 1)
@@ -5994,7 +5994,7 @@
 			(size 3.2 3.2)
 			(drill 3.2)
 			(layers "F&B.Cu" "*.Mask")
-			(uuid "326d62e2-69a1-41c4-bd92-365ae6f0b343")
+			(uuid "d169e00d-b9ab-4182-94a7-85eeec318487")
 		)
 	)
 	(footprint "DIY-Board:wcmcu-ads1232"
@@ -14103,7 +14103,7 @@
 			(at 0 -4.2 0)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "5952674d-3484-4a9e-aaa2-5f919a81f83b")
+			(uuid "6dac43ec-3aa3-4ba0-b958-e79d536f93c9")
 			(effects
 				(font
 					(size 1 1)
@@ -14114,7 +14114,7 @@
 		(property "Value" "MountingHole_3.2mm_M3"
 			(at 0 4.2 0)
 			(layer "F.Fab")
-			(uuid "3917e3fb-d4eb-47e5-aa18-f1f49082df5d")
+			(uuid "0374c881-fe7b-49de-8984-0fe181d2df2d")
 			(effects
 				(font
 					(size 1 1)
@@ -14168,7 +14168,7 @@
 			)
 			(fill none)
 			(layer "Cmts.User")
-			(uuid "e4ab6c09-f49b-4fa2-9b3d-34d6c01a914f")
+			(uuid "471bd038-d5a8-47f3-9994-ee39e5a1ca38")
 		)
 		(fp_circle
 			(center 0 0)
@@ -14179,12 +14179,12 @@
 			)
 			(fill none)
 			(layer "F.CrtYd")
-			(uuid "4c9028b7-d7ad-487e-b267-f2fac998a006")
+			(uuid "27780dea-390e-4bfd-af0c-9a7b48100a97")
 		)
 		(fp_text user "${REFERENCE}"
 			(at 0 0 0)
 			(layer "F.Fab")
-			(uuid "29f10ae7-795f-40ad-b5b7-b785a77323b9")
+			(uuid "c54f98f7-7d25-4d7f-b4d8-cb2f2f4a94c1")
 			(effects
 				(font
 					(size 1 1)
@@ -14197,7 +14197,7 @@
 			(size 3.2 3.2)
 			(drill 3.2)
 			(layers "F&B.Cu" "*.Mask")
-			(uuid "326d62e2-69a1-41c4-bd92-365ae6f0b343")
+			(uuid "55577e7d-7bea-4007-915c-4c88debffc24")
 		)
 	)
 	(footprint "DIY-Board:wcmcu-ads1232"
